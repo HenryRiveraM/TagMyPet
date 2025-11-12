@@ -30,11 +30,11 @@ jobs:
         with:
             message: ${{ steps.coverage.outputs.report }}
       #####
-      #- name: Run E2E Tests
-      #  uses: cypress-io/github-action@v4
-      #  with:
-      #    start: npm start
-      #    wait-on: "http://localhost:1234"
+      - name: Run E2E Tests
+        uses: cypress-io/github-action@v4
+        with:
+          start: npm start
+          wait-on: "http://localhost:1234"
       #####
       #- name: Build for deploy
       #  run: npm run build
