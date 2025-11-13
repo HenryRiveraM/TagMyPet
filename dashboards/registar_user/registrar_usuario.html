@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Registro de Usuario - TagMyPet</title>
+  <link rel="stylesheet" href="../registar_user/registrar_usuario.css" />
+</head>
+<body>
+  <h1>Registro de Usuario 🐕</h1>
+
+  <form id="formRegistro">
+    <label>Nombre:</label>
+    <input type="text" id="nombre" required /><br />
+
+    <label>Correo:</label>
+    <input type="email" id="correo" required /><br />
+
+    <label>Contraseña:</label>
+    <input type="password" id="contrasena" required /><br />
+
+    <label>Teléfono:</label>
+    <input type="tel" id="telefono" required /><br />
+
+    <label>Fecha de nacimiento:</label>
+    <input type="date" id="fechaNacimiento" required /><br />
+
+    <button type="submit">Registrar</button>
+    <div style="text-align: center;">
+  <a href="../../index.html">Home</a>
+</div>
+
+  </form>
+
+  <p id="mensaje"></p>
+
+  <script src="../../src/registrar_usuario.js"></script>
+</body>
+</html>

@@ -1,0 +1,21 @@
+[
+  {
+    "sha": "HEAD",
+    "author": "Lucas-RodriguezAncieta",
+    "commit": {
+      "date": "2025-11-13T00:54:37.000Z",
+      "message": "registrar usuario html y js",
+      "url": "https://github.com/HenryRiveraM/TagMyPet/commit/HEAD"
+    },
+    "stats": {
+      "total": 302,
+      "additions": 284,
+      "deletions": 18,
+      "date": "2025-11-13"
+    },
+    "coverage": 100,
+    "test_count": 1,
+    "failed_tests": 0,
+    "conclusion": "success"
+  }
+]
