@@ -1,8 +1,14 @@
 [
   {
-    "commitId": "HEAD",
+    "commitId": "89cabafbb97efb03150ec04fcfd283e06f2f4dbc",
     "commitName": "registrar usuario html y js",
     "commitTimestamp": 1762995279058,
     "testId": 0
+  },
+  {
+    "commitId": "HEAD",
+    "commitName": "test: pruebas cypress registrar-usuario",
+    "commitTimestamp": 1762995715769,
+    "testId": 1
   }
 ]
