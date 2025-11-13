@@ -6,9 +6,15 @@
     "testId": 0
   },
   {
-    "commitId": "HEAD",
+    "commitId": "c2317ac8320187be009bb25789a19fd698a0b14e",
     "commitName": "test: pruebas cypress registrar-usuario",
     "commitTimestamp": 1762995715769,
     "testId": 1
+  },
+  {
+    "commitId": "HEAD",
+    "commitName": "registrar mascotapor edad y raza",
+    "commitTimestamp": 1763005021157,
+    "testId": 2
   }
 ]
