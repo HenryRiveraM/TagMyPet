@@ -19,17 +19,36 @@
     "conclusion": "success"
   },
   {
-    "sha": "HEAD",
+    "sha": "c2317ac8320187be009bb25789a19fd698a0b14e",
     "author": "Lucas-RodriguezAncieta",
     "commit": {
       "date": "2025-11-13T01:01:54.000Z",
       "message": "test: pruebas cypress registrar-usuario",
-      "url": "https://github.com/HenryRiveraM/TagMyPet/commit/HEAD"
+      "url": "https://github.com/HenryRiveraM/TagMyPet/commit/c2317ac8320187be009bb25789a19fd698a0b14e"
     },
     "stats": {
       "total": 42,
       "additions": 33,
       "deletions": 9,
+      "date": "2025-11-13"
+    },
+    "coverage": 100,
+    "test_count": 1,
+    "failed_tests": 0,
+    "conclusion": "success"
+  },
+  {
+    "sha": "HEAD",
+    "author": "Henry Alejandro Rivera Mendez",
+    "commit": {
+      "date": "2025-11-13T03:36:59.000Z",
+      "message": "registrar mascotapor edad y raza",
+      "url": "https://github.com/HenryRiveraM/TagMyPet/commit/HEAD"
+    },
+    "stats": {
+      "total": 231,
+      "additions": 230,
+      "deletions": 1,
       "date": "2025-11-13"
     },
     "coverage": 100,
