@@ -1,0 +1,40 @@
+[
+  {
+    "sha": "89cabafbb97efb03150ec04fcfd283e06f2f4dbc",
+    "author": "Lucas-RodriguezAncieta",
+    "commit": {
+      "date": "2025-11-13T00:54:37.000Z",
+      "message": "registrar usuario html y js",
+      "url": "https://github.com/HenryRiveraM/TagMyPet/commit/89cabafbb97efb03150ec04fcfd283e06f2f4dbc"
+    },
+    "stats": {
+      "total": 302,
+      "additions": 284,
+      "deletions": 18,
+      "date": "2025-11-13"
+    },
+    "coverage": 100,
+    "test_count": 1,
+    "failed_tests": 0,
+    "conclusion": "success"
+  },
+  {
+    "sha": "HEAD",
+    "author": "Lucas-RodriguezAncieta",
+    "commit": {
+      "date": "2025-11-13T01:01:54.000Z",
+      "message": "test: pruebas cypress registrar-usuario",
+      "url": "https://github.com/HenryRiveraM/TagMyPet/commit/HEAD"
+    },
+    "stats": {
+      "total": 42,
+      "additions": 33,
+      "deletions": 9,
+      "date": "2025-11-13"
+    },
+    "coverage": 100,
+    "test_count": 1,
+    "failed_tests": 0,
+    "conclusion": "success"
+  }
+]
