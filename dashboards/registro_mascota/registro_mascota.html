@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Registrar Mascota | TagMyPet</title>
+
+  <!-- Fuente League Spartan -->
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=League+Spartan:wght@300;400;600;800&display=swap');
+  </style>
+
+  <!-- Estilos -->
+  <link rel="stylesheet" href="registro_mascota.css" />
+</head>
+
+<body>
+  <!-- NAVBAR -->
+  <nav class="navbar">
+    <div class="nav-container">
+      <div class="nav-left">
+        <img src="../../assets/DogTinder.svg" alt="logo" class="logo" />
+        <span class="brand">TagMyPet</span>
+      </div>
+      <div class="nav-links">
+        <a href="../../index.html">Home</a>
+        <a href="#">Configuración</a>
+        <a href="#">Adoptar</a>
+        <a href="#">Matching</a>
+        <a href="#" class="logout">Logout</a>
+      </div>
+    </div>
+  </nav>
+
+  <!-- CONTENIDO -->
+  <main class="main-container">
+    <section class="form-section">
+      <h2>Registrar Nueva Mascota</h2>
+      <p>Completá el formulario para registrar una mascota en la base de datos.</p>
+
+      <form id="formRegistroMascota" class="pet-form" novalidate>
+        <div class="form-group">
+          <label for="nombre">Nombre</label>
+          <input id="nombre" name="nombre" type="text" placeholder="Ej. Lucky" required />
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="edad">Edad (años)</label>
+            <input id="edad" name="edad" type="number" min="0" placeholder="Ej. 3" required />
+          </div>
+
+          <div class="form-group">
+            <label for="especie">Especie</label>
+            <select id="especie" name="especie" required>
+              <option value="">Seleccione...</option>
+              <option>Perro</option>
+              <option>Gato</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="raza">Raza</label>
+          <input id="raza" name="raza" type="text" placeholder="Ej. Golden Retriever" required />
+        </div>
+
+        <div class="form-group">
+            <label for="foto">Foto</label>
+            <input id="foto" name="foto" type="file" accept="image/*" required />
+            <img id="photo-preview" alt="Vista previa" style="display:none; margin-top:10px; max-width:200px; border-radius:10px;" />
+        </div>
+
+        <button type="submit" class="btn-guardar">Guardar Mascota</button>
+        <p id="mensaje" role="status" aria-live="polite"></p>
+      </form>
+    </section>
+
+    <section class="list-section">
+      <h3>Mis Mascotas</h3>
+      <div id="listaMascotas"></div>
+    </section>
+  </main>
+
+  <!-- Script -->
+   <script type="module" src="../../src/registro_mascota.js"></script>
+</body>
+</html>
