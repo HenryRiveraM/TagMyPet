@@ -38,18 +38,37 @@
     "conclusion": "success"
   },
   {
-    "sha": "HEAD",
+    "sha": "3a77c89c67abeb57ae38e9cd02c564b79b902983",
     "author": "Henry Alejandro Rivera Mendez",
     "commit": {
       "date": "2025-11-13T03:36:59.000Z",
       "message": "registrar mascotapor edad y raza",
-      "url": "https://github.com/HenryRiveraM/TagMyPet/commit/HEAD"
+      "url": "https://github.com/HenryRiveraM/TagMyPet/commit/3a77c89c67abeb57ae38e9cd02c564b79b902983"
     },
     "stats": {
       "total": 231,
       "additions": 230,
       "deletions": 1,
       "date": "2025-11-13"
+    },
+    "coverage": 100,
+    "test_count": 1,
+    "failed_tests": 0,
+    "conclusion": "success"
+  },
+  {
+    "sha": "HEAD",
+    "author": "Carlitos",
+    "commit": {
+      "date": "2025-11-18T13:41:41.000Z",
+      "message": "feat: agregando el registro mascota",
+      "url": "https://github.com/HenryRiveraM/TagMyPet/commit/HEAD"
+    },
+    "stats": {
+      "total": 411,
+      "additions": 410,
+      "deletions": 1,
+      "date": "2025-11-18"
     },
     "coverage": 100,
     "test_count": 1,

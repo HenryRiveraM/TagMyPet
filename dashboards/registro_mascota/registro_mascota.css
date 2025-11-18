@@ -1,0 +1,139 @@
+:root {
+  --azul-oscuro: #18353C;
+  --verde-azulado: #18444A;
+  --blanco: #FFFFFF;
+  --rojo: #FF0000;
+  --coral: #FF6B6B;
+  --gris-fondo: #F6FAFA;
+  --shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: "League Spartan", sans-serif;
+  background-color: var(--gris-fondo);
+  color: var(--azul-oscuro);
+}
+
+/* ======= NAVBAR ======= */
+.navbar {
+  width: 100%;
+  background: #FFFFFF;
+  box-shadow: none;
+  border-bottom: 1px solid #E6EDF0;
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+}
+
+.nav-container{
+  width: 100%;
+  margin: 0;
+  padding: 12px 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.nav-left{
+  display:flex; align-items:center; gap:10px;
+  margin-right: auto;
+}
+
+.logo { width: 36px; height: 36px; }
+
+.brand { font-weight: 800; font-size: 22px; color: #18353C; }
+
+.nav-links{
+  display:flex; align-items:center; gap:36px;
+  margin-left: auto; justify-content: flex-end;
+}
+
+.nav-links a {
+  text-decoration: none; color: #18353C; font-weight: 700;
+  transition: color .15s ease;
+}
+
+.nav-links a:hover { color: #18444A; }
+
+.nav-links a.active {
+  color: #18353C; font-weight: 700; position: relative; padding-bottom: 6px;
+}
+.nav-links a.active::after {
+  content: ""; position: absolute; left: 0; right: 0; bottom: -8px;
+  height: 3px; border-radius: 3px; background: #FF6B6B;
+}
+
+.nav-links .logout { color: #FF0000; font-weight: 800; }
+
+/* ======= CONTENIDO PRINCIPAL ======= */
+.main-container { max-width: 900px; margin: 50px auto; padding: 20px; }
+
+.form-section {
+  background-color: var(--azul-oscuro); color: var(--blanco);
+  border-radius: 26px; padding: 40px; box-shadow: var(--shadow);
+}
+
+.form-section h2 {
+  text-align: center; margin-bottom: 10px; font-size: 28px;
+  position: relative; padding-bottom: 8px;
+}
+.form-section h2::after {
+  content: ""; position: absolute; left: 50%; transform: translateX(-50%);
+  bottom: 0; width: 140px; height: 3px; border-radius: 3px;
+  background: rgba(255, 107, 107, 0.45);
+}
+
+.form-section p { text-align: center; font-size: 14px; opacity: .9; margin-bottom: 25px; }
+
+/* ======= FORMULARIO ======= */
+.pet-form { display: flex; flex-direction: column; gap: 20px; }
+
+.form-row { display: flex; gap: 24px; }
+
+.form-group { flex: 1; display: flex; flex-direction: column; gap: 6px; }
+
+label { font-weight: 600; }
+
+input, select {
+  padding: 10px 14px; border-radius: 20px; border: none; font-size: 15px;
+  outline: none; background: #fff; transition: box-shadow .2s ease, transform .1s ease;
+}
+input:focus, select:focus { box-shadow: 0 0 0 3px rgba(255, 107, 107, 0.35); }
+
+.btn-guardar {
+  background-color: var(--verde-azulado); color: var(--blanco); border: none;
+  padding: 12px; border-radius: 14px; font-weight: 800; letter-spacing: .2px;
+  cursor: pointer; transition: background .2s ease, transform .1s ease;
+}
+.btn-guardar:hover { background-color: #153a3f; }
+.btn-guardar:active { transform: translateY(1px); }
+
+/* ======= INPUT FILE ======= */
+input[type="file"] {
+  border-radius: 999px; background: #fff; padding: 6px 10px;
+}
+input[type="file"]::file-selector-button {
+  background: #18444A; color: #fff; border: none; border-radius: 999px;
+  padding: 8px 14px; margin-right: 10px; font-weight: 700; cursor: pointer;
+  transition: background .18s ease, transform .06s ease;
+}
+input[type="file"]::file-selector-button:hover { background: #153a3f; }
+input[type="file"]::file-selector-button:active { transform: translateY(1px); }
+
+/* ======= LISTA ======= */
+.list-section {
+  background-color: var(--blanco); margin-top: 30px; padding: 25px 35px;
+  border-radius: 20px; box-shadow: var(--shadow);
+}
+.list-section h3 { font-size: 20px; font-weight: 800; margin-bottom: 15px; color: var(--azul-oscuro); }
+.pet-card {
+  background: #F5F9F9; border: 1px solid #E6EFEF; border-radius: 15px;
+  padding: 10px 15px; margin-bottom: 10px; font-weight: 600; color: var(--azul-oscuro);
+}
+
+/* ======= FOTO PREVIEW (opcional) ======= */
+#photo-preview {
+  margin-top: 8px; max-width: 240px; max-height: 160px; border-radius: 8px; display: block;
+}
