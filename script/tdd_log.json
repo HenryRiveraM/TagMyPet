@@ -18,9 +18,15 @@
     "testId": 2
   },
   {
-    "commitId": "HEAD",
+    "commitId": "eea92789d724f6280948a756552fa1ce48ba37de",
     "commitName": "feat: agregando el registro mascota",
     "commitTimestamp": 1763473302256,
     "testId": 3
+  },
+  {
+    "commitId": "HEAD",
+    "commitName": "feat: visualizador de mascotas",
+    "commitTimestamp": 1763647284727,
+    "testId": 4
   }
 ]

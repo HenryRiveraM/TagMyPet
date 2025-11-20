@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Perfil de Mascota - TagMyPet</title>
+
+  <!-- CSS de esta pantalla (misma carpeta) -->
+  <link rel="stylesheet" href="./mascota.css" />
+</head>
+<body>
+  <main>
+    <section class="pet-profile">
+      <div class="pet-card" data-testid="pet-card">
+        <!-- Foto -->
+        <img id="pet-photo" data-testid="pet-photo" alt="Foto de mascota" />
+        <p
+          id="pet-photo-fallback"
+          data-testid="pet-photo-fallback"
+          class="hidden"
+        >
+          Foto no disponible.
+        </p>
+
+        <!-- Nombre -->
+        <h2 id="pet-name" data-testid="pet-name"></h2>
+
+        <!-- Raza -->
+        <p>
+          <span class="label">Raza:</span>
+          <span id="pet-breed" data-testid="pet-breed"></span>
+        </p>
+
+        <!-- Edad -->
+        <p>
+          <span class="label">Edad:</span>
+          <span id="pet-age" data-testid="pet-age"></span>
+        </p>
+
+        <!-- Estado -->
+        <p>
+          <span class="label">Estado:</span>
+          <span id="pet-status" data-testid="pet-status"></span>
+        </p>
+      </div>
+    </section>
+  </main>
+
+  <!-- JS de esta pantalla: está en src -->
+  <script type="module" src="../../src/mascota.js"></script>
+</body>
+</html>
