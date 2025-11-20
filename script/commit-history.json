@@ -57,18 +57,37 @@
     "conclusion": "success"
   },
   {
-    "sha": "HEAD",
+    "sha": "eea92789d724f6280948a756552fa1ce48ba37de",
     "author": "Carlitos",
     "commit": {
       "date": "2025-11-18T13:41:41.000Z",
       "message": "feat: agregando el registro mascota",
-      "url": "https://github.com/HenryRiveraM/TagMyPet/commit/HEAD"
+      "url": "https://github.com/HenryRiveraM/TagMyPet/commit/eea92789d724f6280948a756552fa1ce48ba37de"
     },
     "stats": {
       "total": 411,
       "additions": 410,
       "deletions": 1,
       "date": "2025-11-18"
+    },
+    "coverage": 100,
+    "test_count": 1,
+    "failed_tests": 0,
+    "conclusion": "success"
+  },
+  {
+    "sha": "HEAD",
+    "author": "ByAlexShark",
+    "commit": {
+      "date": "2025-11-20T14:01:22.000Z",
+      "message": "feat: visualizador de mascotas",
+      "url": "https://github.com/HenryRiveraM/TagMyPet/commit/HEAD"
+    },
+    "stats": {
+      "total": 224,
+      "additions": 222,
+      "deletions": 2,
+      "date": "2025-11-20"
     },
     "coverage": 100,
     "test_count": 1,
