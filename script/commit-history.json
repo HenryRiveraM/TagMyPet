@@ -76,56 +76,18 @@
     "conclusion": "success"
   },
   {
-    "sha": "74cd8e9ee505d58acc302494e82a3238d606ea4d",
+    "sha": "HEAD",
     "author": "ByAlexShark",
     "commit": {
       "date": "2025-11-20T14:01:22.000Z",
       "message": "feat: visualizador de mascotas",
-      "url": "https://github.com/HenryRiveraM/TagMyPet/commit/74cd8e9ee505d58acc302494e82a3238d606ea4d"
+      "url": "https://github.com/HenryRiveraM/TagMyPet/commit/HEAD"
     },
     "stats": {
       "total": 224,
       "additions": 222,
       "deletions": 2,
       "date": "2025-11-20"
-    },
-    "coverage": 100,
-    "test_count": 1,
-    "failed_tests": 0,
-    "conclusion": "success"
-  },
-  {
-    "sha": "1ce0d88ceb0b66277d1208c0e8193e0a83589f45",
-    "author": "Mauricio",
-    "commit": {
-      "date": "2025-11-22T03:36:37.000Z",
-      "message": "test: cypress registro de refugio",
-      "url": "https://github.com/HenryRiveraM/TagMyPet/commit/1ce0d88ceb0b66277d1208c0e8193e0a83589f45"
-    },
-    "stats": {
-      "total": 59,
-      "additions": 59,
-      "deletions": 0,
-      "date": "2025-11-22"
-    },
-    "coverage": 100,
-    "test_count": 1,
-    "failed_tests": 0,
-    "conclusion": "success"
-  },
-  {
-    "sha": "HEAD",
-    "author": "Mauricio",
-    "commit": {
-      "date": "2025-11-22T03:36:59.000Z",
-      "message": "feat: registro de refugio",
-      "url": "https://github.com/HenryRiveraM/TagMyPet/commit/HEAD"
-    },
-    "stats": {
-      "total": 6083,
-      "additions": 3155,
-      "deletions": 2928,
-      "date": "2025-11-22"
     },
     "coverage": 100,
     "test_count": 1,

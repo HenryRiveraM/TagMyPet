@@ -24,29 +24,9 @@
     "testId": 3
   },
   {
-    "commitId": "74cd8e9ee505d58acc302494e82a3238d606ea4d",
+    "commitId": "HEAD",
     "commitName": "feat: visualizador de mascotas",
     "commitTimestamp": 1763647284727,
     "testId": 4
-  },
-  {
-    "numPassedTests": 1,
-    "failedTests": 0,
-    "numTotalTests": 1,
-    "timestamp": 1763780430325,
-    "success": true,
-    "testId": 5
-  },
-  {
-    "commitId": "1ce0d88ceb0b66277d1208c0e8193e0a83589f45",
-    "commitName": "test: cypress registro de refugio",
-    "commitTimestamp": 1763782597883,
-    "testId": 5
-  },
-  {
-    "commitId": "HEAD",
-    "commitName": "feat: registro de refugio",
-    "commitTimestamp": 1763782619502,
-    "testId": 6
   }
 ]
