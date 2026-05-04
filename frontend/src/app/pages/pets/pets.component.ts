@@ -1,15 +1,17 @@
 import { Component, ElementRef, OnInit, ViewChild, inject, signal } from '@angular/core';
 import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
+import { RouterLink } from '@angular/router';
 import { ApiService } from '../../core/services/api.service';
 import { Pet } from '../../core/models/domain';
 
 @Component({
   standalone: true,
-  imports: [ReactiveFormsModule],
+  imports: [ReactiveFormsModule, RouterLink],
   template: `
     <div class="grid gap-6 lg:grid-cols-[380px_1fr]">
-      <section class="panel">
-        <h1 class="text-2xl font-bold">Mascotas</h1>
+      <section class="panel h-fit lg:sticky lg:top-28">
+        <p class="eyebrow">{{ editingId() ? 'Edición' : 'Registro' }}</p>
+        <h1 class="mt-2 text-2xl font-bold tracking-tight">Mascotas</h1>
         <form class="mt-5 space-y-3" [formGroup]="form" (ngSubmit)="create()">
           <input class="field" formControlName="nombre" placeholder="Nombre">
           <input class="field" formControlName="especie" placeholder="Especie">
@@ -33,19 +35,21 @@ import { Pet } from '../../core/models/domain';
       </section>
       <section class="grid gap-4 md:grid-cols-2">
         @for (pet of pets(); track pet._id) {
-          <article class="panel">
-            <img class="mb-4 h-44 w-full rounded-md object-cover bg-slate-100" [src]="pet.foto || 'https://images.unsplash.com/photo-1548199973-03cce0bbc87b?auto=format&fit=crop&w=900&q=80'" [alt]="pet.nombre">
+          <article class="panel overflow-hidden p-0">
+            <img class="h-52 w-full object-cover bg-slate-100" [src]="pet.foto || 'https://images.unsplash.com/photo-1548199973-03cce0bbc87b?auto=format&fit=crop&w=900&q=80'" [alt]="pet.nombre">
+            <div class="p-5">
             <div class="flex items-start justify-between gap-3">
               <div>
                 <h2 class="text-xl font-semibold">{{ pet.nombre }}</h2>
                 <p class="text-sm text-slate-600">{{ pet.especie }} · {{ pet.raza || 'Sin raza' }} · {{ pet.estado }}</p>
               </div>
-              <span class="rounded-md bg-emerald-50 px-2 py-1 text-xs font-semibold text-brand">{{ pet.codigoNFC }}</span>
+              <span class="badge max-w-[180px] break-all">{{ pet.codigoNFC }}</span>
             </div>
-            <a class="mt-4 block text-sm text-brand" [href]="'/pet/public/' + pet.codigoNFC">Perfil NFC público</a>
+            <a class="mt-4 block text-sm font-semibold text-brand" [routerLink]="['/pet/public', pet.codigoNFC]">Perfil NFC público</a>
             <div class="mt-4 flex gap-2">
               <button class="btn-outline" (click)="edit(pet)">Editar</button>
               <button class="btn-outline" (click)="remove(pet)">Eliminar</button>
+            </div>
             </div>
           </article>
         }

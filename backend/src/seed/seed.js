@@ -9,6 +9,7 @@ import { Pet } from '../models/Pet.js';
 import { PetAccess } from '../models/PetAccess.js';
 import { Reminder } from '../models/Reminder.js';
 import { User } from '../models/User.js';
+import { publicPetUrl } from '../utils/url.js';
 
 dotenv.config();
 
@@ -70,7 +71,7 @@ await NfcTag.create([
     status: 'ASSIGNED',
     pet: luna._id,
     owner: owner._id,
-    publicUrl: `${process.env.FRONTEND_URL || 'http://localhost:4200'}/pet/public/NFC-LUNA-001`,
+    publicUrl: publicPetUrl('NFC-LUNA-001'),
     assignedAt: new Date()
   },
   {
@@ -79,14 +80,14 @@ await NfcTag.create([
     status: 'ASSIGNED',
     pet: max._id,
     owner: owner._id,
-    publicUrl: `${process.env.FRONTEND_URL || 'http://localhost:4200'}/pet/public/NFC-MAX-002`,
+    publicUrl: publicPetUrl('NFC-MAX-002'),
     assignedAt: new Date()
   },
   {
     code: 'TMP-DEMO-003',
     batch: 'LOTE-DEMO-2026',
     status: 'AVAILABLE',
-    publicUrl: `${process.env.FRONTEND_URL || 'http://localhost:4200'}/pet/public/TMP-DEMO-003`
+    publicUrl: publicPetUrl('TMP-DEMO-003')
   }
 ]);
 

@@ -3,6 +3,7 @@ import { NfcTag } from '../models/NfcTag.js';
 import { Pet } from '../models/Pet.js';
 import { ApiError } from '../utils/apiError.js';
 import { asyncHandler } from '../utils/asyncHandler.js';
+import { publicPetUrl } from '../utils/url.js';
 
 const makeCode = () => `TMP-${crypto.randomBytes(4).toString('hex').toUpperCase()}`;
 
@@ -14,7 +15,7 @@ export const listTags = asyncHandler(async (req, res) => {
 
 export const createTag = asyncHandler(async (req, res) => {
   const code = String(req.body.code || makeCode()).toUpperCase().trim();
-  const publicUrl = `${process.env.FRONTEND_URL?.split(',')[0] || 'http://localhost:4200'}/pet/public/${code}`;
+  const publicUrl = publicPetUrl(code);
   const tag = await NfcTag.create({
     code,
     batch: req.body.batch,
@@ -33,7 +34,7 @@ export const createTagBatch = asyncHandler(async (req, res) => {
     return {
       code,
       batch,
-      publicUrl: `${process.env.FRONTEND_URL?.split(',')[0] || 'http://localhost:4200'}/pet/public/${code}`
+      publicUrl: publicPetUrl(code)
     };
   }));
   res.status(201).json(tags);
@@ -54,7 +55,7 @@ export const assignTag = asyncHandler(async (req, res) => {
   tag.pet = pet._id;
   tag.owner = pet.propietario;
   tag.assignedAt = new Date();
-  tag.publicUrl = `${process.env.FRONTEND_URL?.split(',')[0] || 'http://localhost:4200'}/pet/public/${tag.code}`;
+  tag.publicUrl = publicPetUrl(tag.code);
   await tag.save();
   res.json(tag);
 });
@@ -74,7 +75,7 @@ export const exportTagsCsv = asyncHandler(async (req, res) => {
       tag.code,
       tag.batch || '',
       tag.status,
-      tag.publicUrl || '',
+      publicPetUrl(tag.code),
       tag.pet?.nombre || '',
       tag.notes || ''
     ])

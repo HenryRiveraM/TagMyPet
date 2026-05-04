@@ -61,7 +61,7 @@ import { NfcTag, Pet } from '../../core/models/domain';
           </div>
           <p class="mt-3 text-sm text-slate-600">Mascota: {{ tag.pet?.nombre || 'Sin asignar' }}</p>
           @if (tag.publicUrl) {
-            <a class="mt-3 block break-all text-sm text-brand" [href]="tag.publicUrl" target="_blank">{{ tag.publicUrl }}</a>
+            <a class="mt-3 block break-all text-sm font-semibold text-brand" [href]="hashedPublicUrl(tag)" target="_blank">{{ hashedPublicUrl(tag) }}</a>
           }
           @if (auth.user()?.rol === 'ADMIN') {
             <div class="mt-4 flex flex-wrap gap-2">
@@ -90,6 +90,10 @@ export class TagsComponent implements OnInit {
 
   ngOnInit() { this.load(); }
   availableTags() { return this.tags().filter((tag) => tag.status === 'AVAILABLE' || tag.status === 'SOLD'); }
+  hashedPublicUrl(tag: NfcTag) {
+    const origin = location.origin;
+    return `${origin}/#/pet/public/${encodeURIComponent(tag.code)}`;
+  }
   load() {
     this.api.tags().subscribe((tags) => {
       this.tags.set(tags);
