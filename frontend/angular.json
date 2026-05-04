@@ -10,6 +10,7 @@
       "architect": {
         "build": {
           "builder": "@angular-devkit/build-angular:application",
+          "defaultConfiguration": "production",
           "options": {
             "outputPath": "dist/tagmypet-frontend",
             "index": "src/index.html",
