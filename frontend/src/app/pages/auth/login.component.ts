@@ -17,7 +17,7 @@ import { AuthService } from '../../core/services/auth.service';
         </div>
       </div>
       <div class="p-6 sm:p-10">
-        <img class="mb-8 h-14 w-14 rounded-lg border border-slate-200 bg-white object-contain p-1 shadow-sm" src="/assets/tagmypet-logo.png" alt="TagMyPet logo">
+        <img class="mb-8 h-24 w-24 object-contain" src="/assets/tagmypet-logo.png" alt="TagMyPet logo">
         <p class="eyebrow">Acceso seguro</p>
         <h1 class="mt-2 text-3xl font-bold tracking-tight text-slate-950">Iniciar sesión</h1>
         <form class="mt-8 space-y-4" [formGroup]="form" (ngSubmit)="submit()">
