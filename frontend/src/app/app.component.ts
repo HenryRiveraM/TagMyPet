@@ -14,9 +14,9 @@ import { AuthService } from './core/services/auth.service';
           <span class="tracking-tight">TagMyPet</span>
         </a>
         <div class="flex flex-wrap items-center gap-2 text-sm">
-          <a routerLink="/perdidos" class="btn-outline">Perdidos</a>
-          <a routerLink="/adopciones" class="btn-outline">Adopciones</a>
           @if (auth.user()) {
+            <a routerLink="/perdidos" class="btn-outline">Perdidos</a>
+            <a routerLink="/adopciones" class="btn-outline">Adopciones</a>
             <a routerLink="/dashboard" class="btn-outline">Dashboard</a>
             <a routerLink="/clinicas" class="btn-outline">Clínicas</a>
             @if (auth.user()?.rol === 'ADMIN' || auth.user()?.rol === 'OWNER') {
