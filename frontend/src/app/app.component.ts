@@ -10,7 +10,7 @@ import { AuthService } from './core/services/auth.service';
     <header class="sticky top-0 z-30 border-b border-white/70 bg-white/85 shadow-sm shadow-slate-200/60 backdrop-blur-xl">
       <nav class="mx-auto flex max-w-7xl flex-col gap-3 px-4 py-3 md:flex-row md:items-center md:justify-between">
         <a routerLink="/" class="flex items-center gap-3 text-xl font-bold text-brand">
-          <img class="h-10 w-10 rounded-lg border border-slate-200 bg-white object-contain p-1 shadow-sm" src="/assets/tagmypet-logo.svg" alt="TagMyPet logo">
+          <img class="h-10 w-10 rounded-lg border border-slate-200 bg-white object-contain p-1 shadow-sm" src="/assets/tagmypet-logo.png" alt="TagMyPet logo">
           <span class="tracking-tight">TagMyPet</span>
         </a>
         <div class="flex flex-wrap items-center gap-2 text-sm">

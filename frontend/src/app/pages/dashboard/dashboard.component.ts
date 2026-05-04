@@ -8,14 +8,14 @@ import { ApiService } from '../../core/services/api.service';
   imports: [RouterLink],
   template: `
     <section class="mb-6 overflow-hidden rounded-lg border border-white/80 bg-slate-950 p-6 text-white shadow-xl shadow-slate-300/50 md:p-8">
-      <p class="eyebrow text-emerald-200">Panel de control</p>
+      <p class="eyebrow text-stone-200">Panel de control</p>
       <div class="mt-3 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
         <div>
           <h1 class="text-3xl font-bold tracking-tight md:text-4xl">Hola, {{ auth.user()?.nombre }}</h1>
           <p class="mt-2 text-slate-300">Rol {{ auth.user()?.rol }} · Plan {{ auth.user()?.plan || 'FREE' }}</p>
         </div>
         @if (auth.user()?.rol === 'ADMIN') {
-          <button class="btn bg-white text-slate-950 hover:bg-emerald-50" (click)="sendReminderNotifications()">Enviar recordatorios próximos</button>
+          <button class="btn bg-white text-slate-950 hover:bg-stone-100" (click)="sendReminderNotifications()">Enviar recordatorios próximos</button>
         }
       </div>
       @if (!auth.user()?.emailVerified) {

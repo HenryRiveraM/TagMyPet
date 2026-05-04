@@ -57,7 +57,7 @@ import { NfcTag, Pet } from '../../core/models/domain';
               <h2 class="font-semibold">{{ tag.code }}</h2>
               <p class="text-sm text-slate-600">{{ tag.batch || 'Sin lote' }}</p>
             </div>
-            <span class="rounded-md bg-emerald-50 px-2 py-1 text-xs font-semibold text-brand">{{ tag.status }}</span>
+            <span class="rounded-md bg-stone-100 px-2 py-1 text-xs font-semibold text-brand">{{ tag.status }}</span>
           </div>
           <p class="mt-3 text-sm text-slate-600">Mascota: {{ tag.pet?.nombre || 'Sin asignar' }}</p>
           @if (tag.publicUrl) {

@@ -13,7 +13,7 @@ import { Pet, User } from '../../core/models/domain';
           <div class="absolute inset-x-0 bottom-0 bg-gradient-to-t from-slate-950/80 to-transparent p-6 text-white">
             <div class="flex flex-wrap items-end justify-between gap-3">
               <div>
-                <p class="text-sm font-semibold uppercase tracking-wide text-emerald-200">Perfil NFC TagMyPet</p>
+                <p class="text-sm font-semibold uppercase tracking-wide text-stone-200">Perfil NFC TagMyPet</p>
                 <h1 class="mt-1 text-5xl font-bold">{{ profile.nombre }}</h1>
               </div>
               <span class="rounded-md px-3 py-1 text-sm font-semibold" [class.bg-red-500]="profile.estado === 'LOST'" [class.bg-brand]="profile.estado !== 'LOST'">{{ statusLabel(profile.estado) }}</span>
@@ -55,8 +55,8 @@ import { Pet, User } from '../../core/models/domain';
             </div>
           </div>
 
-          <div class="mt-6 rounded-lg border border-emerald-100 bg-emerald-50 p-4">
-            <p class="text-sm text-emerald-900">Este perfil muestra solo información crítica para identificación y emergencia. Los datos médicos completos requieren autorización del propietario.</p>
+          <div class="mt-6 rounded-lg border border-stone-200 bg-stone-100 p-4">
+            <p class="text-sm text-stone-800">Este perfil muestra solo información crítica para identificación y emergencia. Los datos médicos completos requieren autorización del propietario.</p>
           </div>
         </div>
       </section>

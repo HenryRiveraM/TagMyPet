@@ -5,24 +5,25 @@
 body {
   @apply min-h-screen bg-slate-50 text-slate-900 antialiased;
   background:
-    radial-gradient(circle at top left, rgba(16, 163, 127, 0.12), transparent 34rem),
-    linear-gradient(180deg, #f8fafc 0%, #eef7f4 48%, #f8fafc 100%);
+    radial-gradient(circle at top left, rgba(17, 17, 17, 0.08), transparent 34rem),
+    radial-gradient(circle at bottom right, rgba(200, 155, 60, 0.10), transparent 28rem),
+    linear-gradient(180deg, #fbfaf7 0%, #f3efe8 48%, #fbfaf7 100%);
 }
 
 .btn {
-  @apply inline-flex min-h-10 items-center justify-center rounded-md bg-brand px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:-translate-y-0.5 hover:bg-emerald-700 disabled:translate-y-0 disabled:cursor-not-allowed disabled:opacity-60;
+  @apply inline-flex min-h-10 items-center justify-center rounded-md bg-brand px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:-translate-y-0.5 hover:bg-neutral-800 disabled:translate-y-0 disabled:cursor-not-allowed disabled:opacity-60;
 }
 
 .btn-outline {
-  @apply inline-flex min-h-10 items-center justify-center rounded-md border border-slate-200 bg-white/80 px-4 py-2 text-sm font-semibold text-slate-700 shadow-sm transition hover:-translate-y-0.5 hover:border-brand hover:bg-white hover:text-brand;
+  @apply inline-flex min-h-10 items-center justify-center rounded-md border border-stone-200 bg-white/80 px-4 py-2 text-sm font-semibold text-stone-800 shadow-sm transition hover:-translate-y-0.5 hover:border-brand hover:bg-white hover:text-brand;
 }
 
 .field {
-  @apply w-full rounded-md border border-slate-200 bg-white px-3 py-3 text-sm outline-none ring-brand/20 transition placeholder:text-slate-400 focus:border-brand focus:ring-4;
+  @apply w-full rounded-md border border-stone-200 bg-white px-3 py-3 text-sm outline-none ring-brand/10 transition placeholder:text-stone-400 focus:border-brand focus:ring-4;
 }
 
 .panel {
-  @apply rounded-lg border border-white/80 bg-white/90 p-5 shadow-sm shadow-slate-200/70 backdrop-blur;
+  @apply rounded-lg border border-white/80 bg-white/90 p-5 shadow-sm shadow-stone-200/70 backdrop-blur;
 }
 
 .eyebrow {
@@ -30,5 +31,5 @@ body {
 }
 
 .badge {
-  @apply inline-flex items-center rounded-md bg-emerald-50 px-2.5 py-1 text-xs font-bold text-brand;
+  @apply inline-flex items-center rounded-md bg-stone-100 px-2.5 py-1 text-xs font-bold text-brand;
 }

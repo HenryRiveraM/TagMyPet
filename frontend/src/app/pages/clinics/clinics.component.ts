@@ -53,7 +53,7 @@ import { Clinic, Pet, PetAccessRequest } from '../../core/models/domain';
               <p class="text-sm text-slate-600">{{ clinic.ciudad }} · {{ clinic.direccion }}</p>
               <p class="mt-1 text-sm text-slate-600">{{ clinic.telefono }} · {{ clinic.email || 'Sin email' }}</p>
             </div>
-            <span class="rounded-md bg-emerald-50 px-2 py-1 text-xs font-semibold text-brand">{{ clinic.estado }}</span>
+            <span class="rounded-md bg-stone-100 px-2 py-1 text-xs font-semibold text-brand">{{ clinic.estado }}</span>
           </div>
           @if (auth.user()?.rol === 'ADMIN' || auth.user()?.rol === 'VETERINARIO') {
             <form class="mt-4 flex gap-2" [formGroup]="vetForm" (ngSubmit)="addVet(clinic._id)">

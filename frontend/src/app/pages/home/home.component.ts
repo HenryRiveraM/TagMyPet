@@ -7,7 +7,7 @@ import { RouterLink } from '@angular/router';
   template: `
     <section class="relative grid min-h-[72vh] items-center gap-10 overflow-hidden rounded-lg border border-white/80 bg-white/75 p-6 shadow-xl shadow-slate-200/80 md:p-10 lg:grid-cols-[1.02fr_.98fr]">
       <div class="relative z-10">
-        <img class="mb-6 h-20 w-20 rounded-lg border border-slate-200 bg-white object-contain p-2 shadow-sm" src="/assets/tagmypet-logo.svg" alt="TagMyPet logo">
+        <img class="mb-6 h-20 w-20 rounded-lg border border-slate-200 bg-white object-contain p-2 shadow-sm" src="/assets/tagmypet-logo.png" alt="TagMyPet logo">
         <p class="eyebrow">Collares NFC para cuidado real</p>
         <h1 class="mt-3 max-w-3xl text-5xl font-bold leading-tight tracking-tight text-slate-950 md:text-6xl">TagMyPet</h1>
         <p class="mt-5 max-w-2xl text-lg leading-8 text-slate-600">Historial clínico, adopciones responsables, mascotas perdidas y perfiles públicos seguros en una sola plataforma.</p>
