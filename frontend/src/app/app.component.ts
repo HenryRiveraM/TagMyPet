@@ -9,11 +9,11 @@ import { AuthService } from './core/services/auth.service';
   template: `
     <header class="sticky top-0 z-30 border-b border-white/70 bg-white/85 shadow-sm shadow-slate-200/60 backdrop-blur-xl">
       <nav class="mx-auto flex max-w-7xl flex-col gap-3 px-4 py-3 md:flex-row md:items-center md:justify-between">
-        <a routerLink="/" class="flex items-center gap-3 text-xl font-bold text-brand">
-          <img class="h-14 w-14 object-contain" src="/assets/tagmypet-logo.png" alt="TagMyPet logo">
+        <a routerLink="/" class="flex min-w-0 items-center gap-3 text-xl font-bold text-brand">
+          <img class="h-12 w-12 shrink-0 object-contain md:h-14 md:w-14" src="/assets/tagmypet-logo.png" alt="TagMyPet logo">
           <span class="tracking-tight">TagMyPet</span>
         </a>
-        <div class="flex flex-wrap items-center gap-2 text-sm">
+        <div class="flex max-w-full flex-wrap items-center gap-2 text-sm">
           @if (auth.user()) {
             <a routerLink="/perdidos" class="btn-outline">Perdidos</a>
             <a routerLink="/adopciones" class="btn-outline">Adopciones</a>
