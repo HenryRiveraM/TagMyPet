@@ -16,7 +16,14 @@ import { Clinic, Pet, PetAccessRequest } from '../../core/models/domain';
     <div class="grid gap-6 lg:grid-cols-[360px_1fr]">
       @if (auth.user()?.rol === 'ADMIN' || auth.user()?.rol === 'VETERINARIO') {
         <section class="panel">
-          <h2 class="font-semibold">Registrar clínica</h2>
+          <h2 class="font-semibold">{{ auth.user()?.rol === 'ADMIN' ? 'Registrar clínica oficial' : 'Solicitar clínica oficial' }}</h2>
+          <p class="mt-2 text-sm text-slate-600">
+            @if (auth.user()?.rol === 'VETERINARIO') {
+              Completa los datos de tu clínica. Quedará pendiente hasta que el admin la apruebe.
+            } @else {
+              Como admin puedes crear clínicas directamente activas.
+            }
+          </p>
           <form class="mt-4 space-y-3" [formGroup]="clinicForm" (ngSubmit)="createClinic()">
             <input class="field" formControlName="nombre" placeholder="Nombre de clínica">
             <input class="field" formControlName="nit" placeholder="NIT opcional">
@@ -24,7 +31,7 @@ import { Clinic, Pet, PetAccessRequest } from '../../core/models/domain';
             <input class="field" formControlName="email" placeholder="Email">
             <input class="field" formControlName="ciudad" placeholder="Ciudad">
             <input class="field" formControlName="direccion" placeholder="Dirección">
-            <button class="btn w-full" [disabled]="clinicForm.invalid">Guardar clínica</button>
+            <button class="btn w-full" [disabled]="clinicForm.invalid">{{ auth.user()?.rol === 'ADMIN' ? 'Guardar clínica' : 'Enviar solicitud' }}</button>
           </form>
         </section>
       }
@@ -32,17 +39,24 @@ import { Clinic, Pet, PetAccessRequest } from '../../core/models/domain';
       @if (auth.user()?.rol === 'VETERINARIO') {
         <section class="panel">
           <h2 class="font-semibold">Solicitar acceso médico</h2>
-          <form class="mt-4 grid gap-3 md:grid-cols-3" [formGroup]="accessForm" (ngSubmit)="requestAccess()">
-            <input class="field" formControlName="nfcCode" placeholder="Código NFC de la mascota">
-            <select class="field" formControlName="clinic">
-              <option value="">Sin clínica</option>
-              @for (clinic of clinics(); track clinic._id) { <option [value]="clinic._id">{{ clinic.nombre }}</option> }
-            </select>
-            <button class="btn" [disabled]="accessForm.invalid">Solicitar</button>
-          </form>
+          @if (activeClinics().length) {
+            <p class="mt-2 text-sm text-slate-600">Solo puedes solicitar acceso desde una clínica oficial aprobada por admin.</p>
+            <form class="mt-4 grid gap-3 md:grid-cols-3" [formGroup]="accessForm" (ngSubmit)="requestAccess()">
+              <input class="field" formControlName="nfcCode" placeholder="Código NFC de la mascota">
+              <select class="field" formControlName="clinic">
+                @for (clinic of activeClinics(); track clinic._id) { <option [value]="clinic._id">{{ clinic.nombre }}</option> }
+              </select>
+              <button class="btn" [disabled]="accessForm.invalid">Solicitar al dueño</button>
+            </form>
+          } @else {
+            <div class="mt-4 rounded-md bg-amber-50 p-4 text-sm text-amber-900">
+              Primero registra tu clínica y espera la aprobación del admin. Recién después podrás solicitar acceso médico a mascotas.
+            </div>
+          }
         </section>
       }
     </div>
+    @if (message()) { <p class="mt-4 text-sm font-semibold text-brand">{{ message() }}</p> }
 
     <section class="mt-6 grid gap-4 md:grid-cols-2">
       @for (clinic of clinics(); track clinic._id) {
@@ -55,11 +69,14 @@ import { Clinic, Pet, PetAccessRequest } from '../../core/models/domain';
             </div>
             <span class="rounded-md bg-stone-100 px-2 py-1 text-xs font-semibold text-brand">{{ clinic.estado }}</span>
           </div>
-          @if (auth.user()?.rol === 'ADMIN' || auth.user()?.rol === 'VETERINARIO') {
-            <form class="mt-4 flex gap-2" [formGroup]="vetForm" (ngSubmit)="addVet(clinic._id)">
-              <input class="field" formControlName="email" placeholder="Email veterinario">
-              <button class="btn-outline">Agregar</button>
-            </form>
+          @if (auth.user()?.rol === 'ADMIN' && clinic.estado === 'PENDING') {
+            <div class="mt-4 flex flex-wrap gap-2">
+              <button class="btn-outline" (click)="updateClinic(clinic._id, 'ACTIVE')">Aprobar oficial</button>
+              <button class="btn-outline" (click)="updateClinic(clinic._id, 'SUSPENDED')">Rechazar</button>
+            </div>
+          }
+          @if (auth.user()?.rol === 'ADMIN' && clinic.estado === 'ACTIVE') {
+            <button class="btn-outline mt-4" (click)="updateClinic(clinic._id, 'SUSPENDED')">Suspender</button>
           }
           <p class="mt-3 text-xs text-slate-500">Veterinarios: {{ clinic.veterinarios?.length || 0 }}</p>
         </article>
@@ -98,6 +115,7 @@ export class ClinicsComponent implements OnInit {
   auth = inject(AuthService);
   clinics = signal<Clinic[]>([]);
   requests = signal<PetAccessRequest[]>([]);
+  message = signal('');
 
   clinicForm = this.fb.nonNullable.group({
     nombre: ['', Validators.required],
@@ -107,16 +125,31 @@ export class ClinicsComponent implements OnInit {
     ciudad: ['', Validators.required],
     direccion: ['', Validators.required]
   });
-  vetForm = this.fb.nonNullable.group({ email: ['', [Validators.required, Validators.email]] });
-  accessForm = this.fb.nonNullable.group({ nfcCode: ['', Validators.required], clinic: [''] });
+  accessForm = this.fb.nonNullable.group({ nfcCode: ['', Validators.required], clinic: ['', Validators.required] });
 
   ngOnInit() { this.load(); }
   load() {
-    this.api.clinics().subscribe((clinics) => this.clinics.set(clinics));
+    this.api.clinics().subscribe((clinics) => {
+      this.clinics.set(clinics);
+      const firstActive = clinics.find((clinic) => clinic.estado === 'ACTIVE');
+      if (firstActive && !this.accessForm.controls.clinic.value) this.accessForm.patchValue({ clinic: firstActive._id });
+    });
     this.api.accessRequests().subscribe((requests) => this.requests.set(requests));
   }
-  createClinic() { this.api.createClinic(this.clinicForm.getRawValue()).subscribe(() => { this.clinicForm.reset(); this.load(); }); }
-  addVet(clinicId: string) { this.api.addVeterinarian(clinicId, this.vetForm.controls.email.value).subscribe(() => { this.vetForm.reset(); this.load(); }); }
-  requestAccess() { this.api.requestPetAccess(this.accessForm.getRawValue()).subscribe(() => this.load()); }
+  activeClinics() { return this.clinics().filter((clinic) => clinic.estado === 'ACTIVE'); }
+  createClinic() {
+    this.api.createClinic(this.clinicForm.getRawValue()).subscribe(() => {
+      this.clinicForm.reset();
+      this.message.set(this.auth.user()?.rol === 'ADMIN' ? 'Clínica creada' : 'Solicitud enviada al admin');
+      this.load();
+    });
+  }
+  requestAccess() { this.api.requestPetAccess(this.accessForm.getRawValue()).subscribe(() => { this.message.set('Solicitud enviada al dueño'); this.load(); }); }
   decide(id: string, status: 'APPROVED' | 'REJECTED' | 'REVOKED') { this.api.decidePetAccess(id, status).subscribe(() => this.load()); }
+  updateClinic(id: string, estado: 'PENDING' | 'ACTIVE' | 'SUSPENDED') {
+    this.api.updateClinicStatus(id, estado).subscribe(() => {
+      this.message.set(estado === 'ACTIVE' ? 'Clínica aprobada como oficial' : 'Clínica suspendida');
+      this.load();
+    });
+  }
 }

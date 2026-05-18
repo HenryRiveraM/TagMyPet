@@ -10,7 +10,7 @@ import { Pet, User } from '../../core/models/domain';
       <section class="mx-auto max-w-4xl overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm">
         <div class="relative">
           <div class="flex max-h-[560px] min-h-[320px] w-full items-center justify-center bg-stone-100">
-            <img class="max-h-[560px] w-full object-contain" [src]="profile.foto || 'https://images.unsplash.com/photo-1548199973-03cce0bbc87b?auto=format&fit=crop&w=1200&q=80'" [alt]="profile.nombre">
+            <img class="max-h-[560px] w-full object-contain" [src]="mainPhoto(profile)" [alt]="profile.nombre">
           </div>
           <div class="absolute inset-x-0 bottom-0 bg-gradient-to-t from-slate-950/80 to-transparent p-6 text-white">
             <div class="flex flex-wrap items-end justify-between gap-3">
@@ -41,6 +41,14 @@ import { Pet, User } from '../../core/models/domain';
               <a class="btn-outline" target="_blank" [href]="whatsapp(profile)">WhatsApp</a>
             </div>
           </div>
+
+          @if ((profile.fotos?.length || 0) > 1) {
+            <div class="mt-6 grid grid-cols-5 gap-2">
+              @for (photo of profile.fotos?.slice(0, 5); track photo) {
+                <img class="aspect-square rounded-md bg-stone-100 object-contain" [src]="photo" [alt]="profile.nombre">
+              }
+            </div>
+          }
 
           <div class="mt-6 grid gap-4 md:grid-cols-3">
             <div class="rounded-lg border border-slate-200 bg-slate-50 p-4">
@@ -83,5 +91,8 @@ export class NfcProfileComponent implements OnInit {
     const phone = String(profile.contacto.telefono || '').replace(/[^\d+]/g, '');
     const text = encodeURIComponent(`Hola, encontré o quiero consultar por ${profile.nombre} desde su perfil NFC TagMyPet.`);
     return `https://wa.me/${phone.replace('+', '')}?text=${text}`;
+  }
+  mainPhoto(profile: Partial<Pet>) {
+    return profile.fotos?.[0] || profile.foto || 'https://images.unsplash.com/photo-1548199973-03cce0bbc87b?auto=format&fit=crop&w=1200&q=80';
   }
 }

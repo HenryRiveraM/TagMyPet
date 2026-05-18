@@ -23,6 +23,7 @@ export interface Pet {
   sexo?: string;
   color?: string;
   foto?: string;
+  fotos?: string[];
   enfermedades?: string[];
   alergias?: string[];
   medicacion?: string[];
@@ -69,6 +70,7 @@ export interface Clinic {
   direccion: string;
   estado: 'PENDING' | 'ACTIVE' | 'SUSPENDED';
   veterinarios?: User[];
+  administradores?: User[];
 }
 
 export interface PetAccessRequest {

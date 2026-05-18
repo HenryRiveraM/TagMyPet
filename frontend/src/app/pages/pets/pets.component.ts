@@ -34,9 +34,14 @@ import { Pet } from '../../core/models/domain';
             <option value="HEMBRA">Hembra</option>
           </select>
           <input class="field" formControlName="color" placeholder="Color">
-          <input class="field" formControlName="codigoNFC" placeholder="Código NFC opcional">
+          <div class="rounded-md bg-stone-100 p-3 text-sm text-slate-600">
+            El código NFC lo genera TagMyPet automáticamente al guardar. Luego podrás copiar el código o el link público de la mascota.
+          </div>
           <label class="flex items-center gap-2 text-sm"><input type="checkbox" formControlName="esterilizado"> Esterilizado</label>
-          <input #fileInput class="field" type="file" accept="image/*" (change)="pickFile($event)">
+          <label class="block">
+            <span class="mb-1.5 block text-sm font-semibold text-slate-700">Fotos de la mascota (máximo 5)</span>
+            <input #fileInput class="field" type="file" accept="image/*" multiple (change)="pickFiles($event)">
+          </label>
           @if (message()) { <p class="text-sm" [class.text-brand]="!isError()" [class.text-red-600]="isError()">{{ message() }}</p> }
           <div class="grid gap-2 sm:grid-cols-2">
             <button class="btn w-full" [disabled]="form.invalid || saving()">{{ saving() ? 'Guardando...' : editingId() ? 'Actualizar mascota' : 'Guardar mascota' }}</button>
@@ -48,7 +53,7 @@ import { Pet } from '../../core/models/domain';
         @for (pet of pets(); track pet._id) {
           <article class="panel overflow-hidden p-0">
             <div class="flex aspect-[4/3] w-full items-center justify-center bg-stone-100">
-              <img class="h-full w-full object-contain" [src]="pet.foto || 'https://images.unsplash.com/photo-1548199973-03cce0bbc87b?auto=format&fit=crop&w=900&q=80'" [alt]="pet.nombre">
+              <img class="h-full w-full object-contain" [src]="mainPhoto(pet)" [alt]="pet.nombre">
             </div>
             <div class="p-5">
             <div class="flex items-start justify-between gap-3">
@@ -59,9 +64,20 @@ import { Pet } from '../../core/models/domain';
               <span class="badge max-w-[180px] break-all">{{ pet.codigoNFC }}</span>
             </div>
             <div class="mt-4 rounded-md bg-stone-100 p-3">
-              <p class="text-xs font-bold uppercase tracking-wide text-slate-500">Perfil que abre el NFC</p>
-              <a class="mt-1 block break-all text-sm font-semibold text-brand" [routerLink]="['/pet/public', pet.codigoNFC]">{{ publicProfileUrl(pet) }}</a>
+              <p class="text-xs font-bold uppercase tracking-wide text-slate-500">Código NFC generado por la app</p>
+              <div class="mt-2 flex flex-wrap gap-2">
+                <button class="btn-outline" (click)="copyText(pet.codigoNFC, 'Código NFC copiado')">Copiar código</button>
+                <button class="btn-outline" (click)="copyText(publicProfileUrl(pet), 'Link público copiado')">Copiar link</button>
+              </div>
+              <a class="mt-3 block break-all text-sm font-semibold text-brand" [routerLink]="['/pet/public', pet.codigoNFC]">{{ publicProfileUrl(pet) }}</a>
             </div>
+            @if ((pet.fotos?.length || 0) > 1) {
+              <div class="mt-4 grid grid-cols-5 gap-2">
+                @for (photo of pet.fotos?.slice(0, 5); track photo) {
+                  <img class="aspect-square rounded-md bg-stone-100 object-contain" [src]="photo" [alt]="pet.nombre">
+                }
+              </div>
+            }
             <div class="mt-4 flex gap-2">
               <button class="btn-outline" (click)="edit(pet)">Editar</button>
               <button class="btn-outline" (click)="remove(pet)">Eliminar</button>
@@ -82,7 +98,7 @@ export class PetsComponent implements OnInit {
   isError = signal(false);
   saving = signal(false);
   editingId = signal<string | null>(null);
-  file: File | null = null;
+  files: File[] = [];
   form = this.fb.nonNullable.group({
     nombre: ['', Validators.required],
     especie: ['', Validators.required],
@@ -91,7 +107,6 @@ export class PetsComponent implements OnInit {
     edad: [0],
     sexo: ['DESCONOCIDO'],
     color: [''],
-    codigoNFC: [''],
     esterilizado: [false]
   });
 
@@ -99,9 +114,17 @@ export class PetsComponent implements OnInit {
 
   load() { this.api.pets().subscribe((pets) => this.pets.set(pets)); }
 
-  pickFile(event: Event) {
+  pickFiles(event: Event) {
     const input = event.target as HTMLInputElement;
-    this.file = input.files?.[0] || null;
+    const selected = Array.from(input.files || []);
+    if (selected.length > 5) {
+      this.isError.set(true);
+      this.message.set('Puedes subir máximo 5 fotos por mascota.');
+      input.value = '';
+      this.files = [];
+      return;
+    }
+    this.files = selected;
   }
 
   create() {
@@ -121,13 +144,13 @@ export class PetsComponent implements OnInit {
       const resolved = key === 'especie' && raw.especie === 'Otro' ? raw.especieOtra : value;
       data.append(key, String(resolved ?? ''));
     });
-    if (this.file) data.append('foto', this.file);
+    this.files.forEach((file) => data.append('fotos', file));
     const wasEditing = Boolean(this.editingId());
     const request = wasEditing ? this.api.updatePet(this.editingId() as string, data) : this.api.createPet(data);
     request.subscribe({
       next: () => {
         this.cancelEdit(false);
-        this.file = null;
+        this.files = [];
         if (this.fileInput) this.fileInput.nativeElement.value = '';
         this.message.set(wasEditing ? 'Mascota actualizada' : 'Mascota creada');
         this.saving.set(false);
@@ -154,7 +177,6 @@ export class PetsComponent implements OnInit {
       edad: pet.edad || 0,
       sexo: pet.sexo || 'DESCONOCIDO',
       color: pet.color || '',
-      codigoNFC: pet.codigoNFC,
       esterilizado: Boolean(pet.esterilizado)
     });
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -163,7 +185,7 @@ export class PetsComponent implements OnInit {
   cancelEdit(clearMessage = true) {
     this.editingId.set(null);
     this.form.reset({ especie: '', especieOtra: '', sexo: 'DESCONOCIDO', edad: 0, esterilizado: false });
-    this.file = null;
+    this.files = [];
     if (this.fileInput) this.fileInput.nativeElement.value = '';
     if (clearMessage) this.message.set('');
   }
@@ -178,5 +200,15 @@ export class PetsComponent implements OnInit {
 
   publicProfileUrl(pet: Pet) {
     return `${location.origin}/#/pet/public/${encodeURIComponent(pet.codigoNFC)}`;
+  }
+
+  mainPhoto(pet: Pet) {
+    return pet.fotos?.[0] || pet.foto || 'https://images.unsplash.com/photo-1548199973-03cce0bbc87b?auto=format&fit=crop&w=900&q=80';
+  }
+
+  copyText(value: string, message: string) {
+    navigator.clipboard?.writeText(value);
+    this.isError.set(false);
+    this.message.set(message);
   }
 }

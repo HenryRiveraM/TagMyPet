@@ -95,8 +95,8 @@ EMAIL_FROM=TagMyPet <no-reply@tagmypet.com>
 ## Roles
 
 - `ADMIN`: gestiona usuarios, suspensión, métricas y moderación.
-- `OWNER`: registra mascotas, historial, recordatorios, perdidos, adopciones y solicitudes de adopción.
-- `VETERINARIO`: consulta mascotas autorizadas y actualiza historial médico.
+- `OWNER`: registra mascotas, historial, recordatorios, perdidos, adopciones y aprueba accesos médicos.
+- `VETERINARIO`: registra/solicita clínica oficial, pide acceso médico con código NFC y actualiza historial autorizado.
 
 ## Seed
 
@@ -112,7 +112,7 @@ Password para todos:
 Password123
 ```
 
-También crea mascotas, perfil NFC, historial médico, recordatorios, reporte perdido, publicación de adopción, clínica veterinaria, autorización médica aprobada y tags NFC de inventario.
+También crea mascotas, perfil NFC, historial médico, recordatorios, reporte perdido, publicación de adopción, clínica veterinaria oficial, autorización médica aprobada y tags NFC de inventario.
 
 Perfil NFC de prueba:
 
@@ -313,13 +313,14 @@ Frontend en Netlify:
 3. Login con `admin@tagmypet.com`.
 4. Ver dashboard y panel admin.
 5. Login con `owner@tagmypet.com`.
-6. Crear mascota y abrir su perfil NFC.
+6. Crear mascota con hasta 5 fotos, copiar el código/link NFC y abrir su perfil público.
 7. Crear historial y recordatorios.
 8. Publicar reporte perdido.
 9. Desde la cuenta `owner@tagmypet.com`, solicitar adopción con cuestionario y firma digital.
 10. Login con `vet@tagmypet.com`.
-11. Solicitar acceso médico con `NFC-LUNA-001` o revisar el acceso aprobado del seed.
-12. Login con `admin@tagmypet.com` y abrir `Tags NFC` para crear lote y asignar tags.
+11. Crear una clínica desde veterinario y aprobarla desde admin, o revisar la clínica oficial del seed.
+12. Solicitar acceso médico con el código NFC de una mascota y aprobarlo desde dueño/admin.
+13. Login con `admin@tagmypet.com` y abrir `Tags NFC` para crear lote y asignar tags.
 
 ## Guion de Demo Recomendado
 

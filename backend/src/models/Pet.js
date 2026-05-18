@@ -8,6 +8,7 @@ const petSchema = new mongoose.Schema({
   sexo: { type: String, enum: ['MACHO', 'HEMBRA', 'DESCONOCIDO'], default: 'DESCONOCIDO' },
   color: { type: String, trim: true },
   foto: { type: String },
+  fotos: [{ type: String }],
   enfermedades: [{ type: String, trim: true }],
   alergias: [{ type: String, trim: true }],
   medicacion: [{ type: String, trim: true }],

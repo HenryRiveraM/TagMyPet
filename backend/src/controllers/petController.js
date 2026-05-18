@@ -19,6 +19,11 @@ function uploadImage(buffer) {
   });
 }
 
+async function uploadImages(files = []) {
+  const selected = files.slice(0, 5);
+  return Promise.all(selected.map((file) => uploadImage(file.buffer)));
+}
+
 const canManagePet = (user, pet) => user.rol === 'ADMIN' || pet.propietario.toString() === user._id.toString();
 
 export const listPets = asyncHandler(async (req, res) => {
@@ -33,8 +38,14 @@ export const createPet = asyncHandler(async (req, res) => {
     if (count >= 2) throw new ApiError('El plan FREE permite hasta 2 mascotas', 402);
   }
 
-  const data = { ...req.body, propietario: req.user._id, codigoNFC: req.body.codigoNFC || crypto.randomUUID() };
-  if (req.file) data.foto = await uploadImage(req.file.buffer);
+  const data = { ...req.body, propietario: req.user._id };
+  delete data.codigoNFC;
+  data.codigoNFC = crypto.randomUUID();
+  const photos = await uploadImages(req.files || []);
+  if (photos.length) {
+    data.fotos = photos;
+    data.foto = photos[0];
+  }
 
   const pet = await Pet.create(data);
   const tag = await NfcTag.findOne({ code: pet.codigoNFC.toUpperCase(), status: { $in: ['AVAILABLE', 'SOLD'] } });
@@ -60,8 +71,14 @@ export const updatePet = asyncHandler(async (req, res) => {
   if (!pet) throw new ApiError('Mascota no encontrada', 404);
   if (!canManagePet(req.user, pet)) throw new ApiError('Sin acceso', 403);
 
-  Object.assign(pet, req.body);
-  if (req.file) pet.foto = await uploadImage(req.file.buffer);
+  const data = { ...req.body };
+  delete data.codigoNFC;
+  Object.assign(pet, data);
+  const photos = await uploadImages(req.files || []);
+  if (photos.length) {
+    pet.fotos = photos;
+    pet.foto = photos[0];
+  }
   await pet.save();
   res.json(pet);
 });
@@ -86,6 +103,7 @@ export const publicNfcProfile = asyncHandler(async (req, res) => {
     raza: pet.raza,
     color: pet.color,
     foto: pet.foto,
+    fotos: pet.fotos,
     alergias: pet.alergias,
     medicacion: pet.medicacion,
     enfermedades: pet.enfermedades,

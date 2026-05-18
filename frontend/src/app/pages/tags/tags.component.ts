@@ -29,7 +29,7 @@ import { Pet } from '../../core/models/domain';
             @if (selectedPet(); as pet) {
               <div class="grid gap-4 md:grid-cols-[160px_1fr] md:items-center">
                 <div class="flex aspect-square items-center justify-center overflow-hidden rounded-lg bg-stone-100">
-                  <img class="h-full w-full object-contain" [src]="pet.foto || 'https://images.unsplash.com/photo-1548199973-03cce0bbc87b?auto=format&fit=crop&w=900&q=80'" [alt]="pet.nombre">
+                  <img class="h-full w-full object-contain" [src]="mainPhoto(pet)" [alt]="pet.nombre">
                 </div>
                 <div>
                   <span class="badge">Perfil público</span>
@@ -44,7 +44,8 @@ import { Pet } from '../../core/models/domain';
                 <p class="mt-2 break-all text-sm font-semibold text-slate-950">{{ publicProfileUrl(pet) }}</p>
               </div>
 
-              <div class="grid gap-3 sm:grid-cols-2">
+              <div class="grid gap-3 sm:grid-cols-3">
+                <button class="btn-outline" type="button" (click)="copyCode(pet)">Copiar código</button>
                 <button class="btn" type="button" (click)="copyLink(pet)">Copiar link</button>
                 <a class="btn-outline" [href]="publicProfileUrl(pet)" target="_blank">Ver perfil</a>
               </div>
@@ -97,6 +98,15 @@ export class TagsComponent implements OnInit {
 
   publicProfileUrl(pet: Pet) {
     return `${location.origin}/#/pet/public/${encodeURIComponent(pet.codigoNFC)}`;
+  }
+
+  mainPhoto(pet: Pet) {
+    return pet.fotos?.[0] || pet.foto || 'https://images.unsplash.com/photo-1548199973-03cce0bbc87b?auto=format&fit=crop&w=900&q=80';
+  }
+
+  copyCode(pet: Pet) {
+    navigator.clipboard?.writeText(pet.codigoNFC);
+    this.message.set('Código NFC copiado. Úsalo para identificar la mascota dentro de TagMyPet.');
   }
 
   copyLink(pet: Pet) {

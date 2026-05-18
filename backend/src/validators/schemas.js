@@ -25,7 +25,8 @@ export const resetPasswordRules = [
 export const petRules = [
   body('nombre').trim().notEmpty().withMessage('Nombre de mascota requerido'),
   body('especie').trim().notEmpty().withMessage('Especie requerida'),
-  body('edad').optional().isNumeric().withMessage('Edad inválida')
+  body('edad').optional().isNumeric().withMessage('Edad inválida'),
+  body('codigoNFC').optional().customSanitizer(() => undefined)
 ];
 
 export const medicalRules = [

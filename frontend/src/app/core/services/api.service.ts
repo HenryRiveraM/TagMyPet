@@ -44,6 +44,7 @@ export class ApiService {
   updateUserStatus(id: string, estado: string) { return this.http.patch<User>(`${this.api}/admin/users/${id}/status`, { estado }); }
   clinics() { return this.http.get<Clinic[]>(`${this.api}/clinics`); }
   createClinic(data: object) { return this.http.post<Clinic>(`${this.api}/clinics`, data); }
+  updateClinicStatus(id: string, estado: 'PENDING' | 'ACTIVE' | 'SUSPENDED') { return this.http.patch<Clinic>(`${this.api}/clinics/${id}/status`, { estado }); }
   addVeterinarian(clinicId: string, email: string) { return this.http.post<Clinic>(`${this.api}/clinics/${clinicId}/veterinarians`, { email }); }
   accessRequests() { return this.http.get<PetAccessRequest[]>(`${this.api}/clinics/access/requests`); }
   requestPetAccess(data: object) { return this.http.post<PetAccessRequest>(`${this.api}/clinics/access/requests`, data); }

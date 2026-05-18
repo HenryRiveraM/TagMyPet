@@ -46,9 +46,14 @@ export const addVeterinarian = asyncHandler(async (req, res) => {
 
 export const requestPetAccess = asyncHandler(async (req, res) => {
   if (req.user.rol !== 'VETERINARIO') throw new ApiError('Solo veterinarios pueden solicitar acceso', 403);
+  if (!req.body.clinic) throw new ApiError('Selecciona una clínica oficial activa', 400);
+  const clinic = await Clinic.findById(req.body.clinic);
+  if (!clinic || clinic.estado !== 'ACTIVE') throw new ApiError('La clínica debe estar aprobada por admin antes de solicitar acceso', 403);
+  if (!clinic.veterinarios.some((id) => id.toString() === req.user._id.toString())) throw new ApiError('No perteneces a esta clínica', 403);
+
   const pet = req.body.pet
     ? await Pet.findById(req.body.pet)
-    : await Pet.findOne({ codigoNFC: String(req.body.nfcCode || '').toUpperCase() });
+    : await Pet.findOne({ codigoNFC: String(req.body.nfcCode || '').trim() });
   if (!pet) throw new ApiError('Mascota no encontrada', 404);
 
   const access = await PetAccess.findOneAndUpdate(
