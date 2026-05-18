@@ -19,7 +19,10 @@ export class ApiService {
   reminders() { return this.http.get<Reminder[]>(`${this.api}/reminders`); }
   createReminder(data: object) { return this.http.post(`${this.api}/reminders`, data); }
   toggleReminder(id: string) { return this.http.patch<Reminder>(`${this.api}/reminders/${id}/toggle`, {}); }
-  lostReports(ciudad = '') { return this.http.get<LostReport[]>(`${this.api}/lost`, { params: ciudad ? { ciudad } : {} }); }
+  lostReports(filters: { ciudad?: string; especie?: string } = {}) {
+    const params = Object.fromEntries(Object.entries(filters).filter(([, value]) => Boolean(value)));
+    return this.http.get<LostReport[]>(`${this.api}/lost`, { params });
+  }
   createLost(data: object) { return this.http.post(`${this.api}/lost`, data); }
   markFound(id: string) { return this.http.patch(`${this.api}/lost/${id}/found`, {}); }
   adoptions() { return this.http.get<Adoption[]>(`${this.api}/adoptions`); }
