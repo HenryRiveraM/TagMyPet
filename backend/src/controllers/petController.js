@@ -2,6 +2,7 @@ import crypto from 'crypto';
 import cloudinary from '../config/cloudinary.js';
 import { NfcTag } from '../models/NfcTag.js';
 import { Pet } from '../models/Pet.js';
+import { PetAccess } from '../models/PetAccess.js';
 import { MedicalRecord } from '../models/MedicalRecord.js';
 import { ApiError } from '../utils/apiError.js';
 import { asyncHandler } from '../utils/asyncHandler.js';
@@ -27,7 +28,11 @@ async function uploadImages(files = []) {
 const canManagePet = (user, pet) => user.rol === 'ADMIN' || pet.propietario.toString() === user._id.toString();
 
 export const listPets = asyncHandler(async (req, res) => {
-  const query = req.user.rol === 'ADMIN' ? {} : { propietario: req.user._id };
+  let query = req.user.rol === 'ADMIN' ? {} : { propietario: req.user._id };
+  if (req.user.rol === 'VETERINARIO') {
+    const accesses = await PetAccess.find({ veterinarian: req.user._id, status: 'APPROVED' }).select('pet');
+    query = { _id: { $in: accesses.map((access) => access.pet) } };
+  }
   const pets = await Pet.find(query).populate('propietario', 'nombre apellido email telefono ciudad');
   res.json(pets);
 });

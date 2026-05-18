@@ -41,15 +41,15 @@ import { AuthService } from '../../core/services/auth.service';
         </div>
         <form class="mt-8 grid min-w-0 gap-4 sm:grid-cols-2" [formGroup]="form" (ngSubmit)="submit()">
           <label class="block min-w-0">
-            <span class="mb-1.5 block text-sm font-semibold text-slate-700">Nombre</span>
+            <span class="mb-1.5 block text-sm font-semibold text-slate-700">Nombre *</span>
             <input class="field" formControlName="nombre" placeholder="Henry" autocomplete="given-name">
           </label>
           <label class="block min-w-0">
-            <span class="mb-1.5 block text-sm font-semibold text-slate-700">Apellido</span>
+            <span class="mb-1.5 block text-sm font-semibold text-slate-700">Apellido *</span>
             <input class="field" formControlName="apellido" placeholder="Rivera" autocomplete="family-name">
           </label>
           <label class="block min-w-0">
-            <span class="mb-1.5 block text-sm font-semibold text-slate-700">Email</span>
+            <span class="mb-1.5 block text-sm font-semibold text-slate-700">Email *</span>
             <input class="field" formControlName="email" placeholder="tu@email.com" type="email" autocomplete="email">
           </label>
           <label class="block min-w-0">
@@ -61,14 +61,14 @@ import { AuthService } from '../../core/services/auth.service';
             <input class="field" formControlName="ciudad" placeholder="La Paz" autocomplete="address-level2">
           </label>
           <label class="block min-w-0">
-            <span class="mb-1.5 block text-sm font-semibold text-slate-700">Rol</span>
+            <span class="mb-1.5 block text-sm font-semibold text-slate-700">Rol *</span>
             <select class="field" formControlName="rol">
               <option value="OWNER">Dueño</option>
               <option value="VETERINARIO">Veterinario</option>
             </select>
           </label>
           <label class="block min-w-0 sm:col-span-2">
-            <span class="mb-1.5 block text-sm font-semibold text-slate-700">Password</span>
+            <span class="mb-1.5 block text-sm font-semibold text-slate-700">Password *</span>
             <div class="relative">
               <input class="field pr-24" formControlName="password" placeholder="Mínimo 8 caracteres" [type]="showPassword() ? 'text' : 'password'" autocomplete="new-password">
               <button type="button" class="absolute right-2 top-1/2 -translate-y-1/2 rounded-md px-3 py-1.5 text-xs font-bold text-brand transition hover:bg-stone-100" (click)="showPassword.set(!showPassword())">

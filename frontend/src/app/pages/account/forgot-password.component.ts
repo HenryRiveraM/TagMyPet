@@ -11,7 +11,7 @@ import { AuthService } from '../../core/services/auth.service';
       <h1 class="text-2xl font-bold">Recuperar password</h1>
       <p class="mt-2 text-sm text-slate-600">Te enviaremos un enlace para crear un nuevo password.</p>
       <form class="mt-6 space-y-4" [formGroup]="form" (ngSubmit)="submit()">
-        <input class="field" formControlName="email" placeholder="Email" type="email">
+        <input class="field" formControlName="email" placeholder="Email *" type="email">
         @if (message()) { <p class="text-sm text-brand">{{ message() }}</p> }
         <button class="btn w-full" [disabled]="form.invalid">Enviar enlace</button>
       </form>

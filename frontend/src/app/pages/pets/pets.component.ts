@@ -13,15 +13,15 @@ import { Pet } from '../../core/models/domain';
         <p class="eyebrow">{{ editingId() ? 'Edición' : 'Registro' }}</p>
         <h1 class="mt-2 text-2xl font-bold tracking-tight">Mascotas</h1>
         <form class="mt-5 space-y-3" [formGroup]="form" (ngSubmit)="create()">
-          <input class="field" formControlName="nombre" placeholder="Nombre">
+          <input class="field" formControlName="nombre" placeholder="Nombre *">
           <select class="field" formControlName="especie">
-            <option value="">Especie</option>
+            <option value="">Especie *</option>
             <option value="Perro">Perro</option>
             <option value="Gato">Gato</option>
             <option value="Otro">Otro</option>
           </select>
           @if (form.controls.especie.value === 'Otro') {
-            <input class="field" formControlName="especieOtra" placeholder="Especifica la especie">
+            <input class="field" formControlName="especieOtra" placeholder="Especifica la especie *">
           }
           <input class="field" formControlName="raza" placeholder="Raza">
           <label class="block">

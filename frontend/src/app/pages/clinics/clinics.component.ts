@@ -25,12 +25,12 @@ import { Clinic, Pet, PetAccessRequest } from '../../core/models/domain';
             }
           </p>
           <form class="mt-4 space-y-3" [formGroup]="clinicForm" (ngSubmit)="createClinic()">
-            <input class="field" formControlName="nombre" placeholder="Nombre de clínica">
+            <input class="field" formControlName="nombre" placeholder="Nombre de clínica *">
             <input class="field" formControlName="nit" placeholder="NIT opcional">
-            <input class="field" formControlName="telefono" placeholder="Teléfono">
+            <input class="field" formControlName="telefono" placeholder="Teléfono *">
             <input class="field" formControlName="email" placeholder="Email">
-            <input class="field" formControlName="ciudad" placeholder="Ciudad">
-            <input class="field" formControlName="direccion" placeholder="Dirección">
+            <input class="field" formControlName="ciudad" placeholder="Ciudad *">
+            <input class="field" formControlName="direccion" placeholder="Dirección *">
             <button class="btn w-full" [disabled]="clinicForm.invalid">{{ auth.user()?.rol === 'ADMIN' ? 'Guardar clínica' : 'Enviar solicitud' }}</button>
           </form>
         </section>
@@ -42,7 +42,7 @@ import { Clinic, Pet, PetAccessRequest } from '../../core/models/domain';
           @if (activeClinics().length) {
             <p class="mt-2 text-sm text-slate-600">Solo puedes solicitar acceso desde una clínica oficial aprobada por admin.</p>
             <form class="mt-4 grid gap-3 md:grid-cols-3" [formGroup]="accessForm" (ngSubmit)="requestAccess()">
-              <input class="field" formControlName="nfcCode" placeholder="Código NFC de la mascota">
+              <input class="field" formControlName="nfcCode" placeholder="Código NFC de la mascota *">
               <select class="field" formControlName="clinic">
                 @for (clinic of activeClinics(); track clinic._id) { <option [value]="clinic._id">{{ clinic.nombre }}</option> }
               </select>

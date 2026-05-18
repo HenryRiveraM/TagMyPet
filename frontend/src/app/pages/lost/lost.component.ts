@@ -32,10 +32,10 @@ import { LostReport, Pet } from '../../core/models/domain';
       <section class="panel">
         <h2 class="font-semibold">Reportar pérdida</h2>
         <form class="mt-4 space-y-3" [formGroup]="form" (ngSubmit)="create()">
-          <select class="field" formControlName="pet">@for (pet of pets(); track pet._id) { <option [value]="pet._id">{{ pet.nombre }}</option> }</select>
-          <input class="field" formControlName="ciudad" placeholder="Ciudad">
+          <select class="field" formControlName="pet">@for (pet of pets(); track pet._id) { <option [value]="pet._id">{{ pet.nombre }} *</option> }</select>
+          <input class="field" formControlName="ciudad" placeholder="Ciudad *">
           <input class="field" formControlName="zona" placeholder="Zona">
-          <input class="field" formControlName="contactoPublico" placeholder="Teléfono público">
+          <input class="field" formControlName="contactoPublico" placeholder="Teléfono público *">
           <textarea class="field" formControlName="descripcion" placeholder="Descripción"></textarea>
           <button class="btn w-full" [disabled]="form.invalid">Publicar</button>
         </form>

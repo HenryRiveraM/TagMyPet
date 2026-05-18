@@ -32,9 +32,9 @@ import { Adoption, Pet } from '../../core/models/domain';
       <section class="panel">
         <h2 class="font-semibold">Publicar adopción</h2>
         <form class="mt-4 space-y-3" [formGroup]="publishForm" (ngSubmit)="publish()">
-          <select class="field" formControlName="pet">@for (pet of pets(); track pet._id) { <option [value]="pet._id">{{ pet.nombre }}</option> }</select>
-          <input class="field" formControlName="ciudad" placeholder="Ciudad">
-          <textarea class="field" formControlName="descripcion" placeholder="Descripción"></textarea>
+          <select class="field" formControlName="pet">@for (pet of pets(); track pet._id) { <option [value]="pet._id">{{ pet.nombre }} *</option> }</select>
+          <input class="field" formControlName="ciudad" placeholder="Ciudad *">
+          <textarea class="field" formControlName="descripcion" placeholder="Descripción *"></textarea>
           <button class="btn w-full" [disabled]="publishForm.invalid">Publicar</button>
         </form>
       </section>
@@ -49,11 +49,11 @@ import { Adoption, Pet } from '../../core/models/domain';
               <p class="text-sm text-slate-600">{{ adoption.ciudad }} · {{ adoption.pet.especie }} · {{ adoption.pet.edad || 0 }} años</p>
               <p class="mt-2 text-sm">{{ adoption.descripcion }}</p>
               <form class="mt-4 grid gap-2 md:grid-cols-2" [formGroup]="applyForm" (ngSubmit)="apply(adoption._id)">
-                <input class="field" formControlName="espacio" placeholder="Espacio disponible">
-                <input class="field" formControlName="experiencia" placeholder="Experiencia">
-                <input class="field" formControlName="recursos" placeholder="Recursos">
-                <input class="field" formControlName="compromiso" placeholder="Compromiso">
-                <input class="field md:col-span-2" formControlName="firmaDigital" placeholder="Firma digital">
+                <input class="field" formControlName="espacio" placeholder="Espacio disponible *">
+                <input class="field" formControlName="experiencia" placeholder="Experiencia *">
+                <input class="field" formControlName="recursos" placeholder="Recursos *">
+                <input class="field" formControlName="compromiso" placeholder="Compromiso *">
+                <input class="field md:col-span-2" formControlName="firmaDigital" placeholder="Firma digital *">
                 <button class="btn md:col-span-2" [disabled]="applyForm.invalid">Solicitar adopción</button>
               </form>
             </div>

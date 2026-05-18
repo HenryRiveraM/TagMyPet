@@ -10,7 +10,7 @@ import { AuthService } from '../../core/services/auth.service';
     <section class="mx-auto max-w-md panel">
       <h1 class="text-2xl font-bold">Nuevo password</h1>
       <form class="mt-6 space-y-4" [formGroup]="form" (ngSubmit)="submit()">
-        <input class="field" formControlName="password" placeholder="Password nuevo" type="password">
+        <input class="field" formControlName="password" placeholder="Password nuevo *" type="password">
         @if (message()) { <p class="text-sm text-red-600">{{ message() }}</p> }
         <button class="btn w-full" [disabled]="form.invalid">Guardar password</button>
       </form>

@@ -12,10 +12,13 @@ import { Pet, Reminder } from '../../core/models/domain';
       <section class="panel">
         <h1 class="text-2xl font-bold">Recordatorios</h1>
         <form class="mt-5 space-y-3" [formGroup]="form" (ngSubmit)="create()">
-          <select class="field" formControlName="pet">@for (pet of pets(); track pet._id) { <option [value]="pet._id">{{ pet.nombre }}</option> }</select>
-          <select class="field" formControlName="tipo"><option value="VACUNA">Vacuna</option><option value="MEDICACION">Medicación</option><option value="CONTROL">Control</option></select>
-          <input class="field" formControlName="titulo" placeholder="Título">
-          <input class="field" type="date" formControlName="fecha">
+          <select class="field" formControlName="pet">@for (pet of pets(); track pet._id) { <option [value]="pet._id">{{ pet.nombre }} *</option> }</select>
+          <select class="field" formControlName="tipo"><option value="VACUNA">Vacuna *</option><option value="MEDICACION">Medicación *</option><option value="CONTROL">Control *</option></select>
+          <input class="field" formControlName="titulo" placeholder="Título *">
+          <label class="block">
+            <span class="mb-1.5 block text-sm font-semibold text-slate-700">Fecha *</span>
+            <input class="field" type="date" formControlName="fecha">
+          </label>
           <button class="btn w-full" [disabled]="form.invalid">Crear alerta</button>
         </form>
       </section>

@@ -22,11 +22,11 @@ import { AuthService } from '../../core/services/auth.service';
         <h1 class="mt-2 text-3xl font-bold tracking-tight text-slate-950">Iniciar sesión</h1>
         <form class="mt-8 space-y-4" [formGroup]="form" (ngSubmit)="submit()">
           <label class="block">
-            <span class="mb-1.5 block text-sm font-semibold text-slate-700">Email</span>
+            <span class="mb-1.5 block text-sm font-semibold text-slate-700">Email *</span>
             <input class="field" formControlName="email" placeholder="tu@email.com" type="email" autocomplete="email">
           </label>
           <label class="block">
-            <span class="mb-1.5 block text-sm font-semibold text-slate-700">Password</span>
+            <span class="mb-1.5 block text-sm font-semibold text-slate-700">Password *</span>
             <div class="relative">
               <input class="field pr-24" formControlName="password" placeholder="Tu password" [type]="showPassword() ? 'text' : 'password'" autocomplete="current-password">
               <button type="button" class="absolute right-2 top-1/2 -translate-y-1/2 rounded-md px-3 py-1.5 text-xs font-bold text-brand transition hover:bg-stone-100" (click)="showPassword.set(!showPassword())">
