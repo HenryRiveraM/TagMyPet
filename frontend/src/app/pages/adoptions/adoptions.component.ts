@@ -24,7 +24,9 @@ import { Adoption, Pet } from '../../core/models/domain';
       <section class="grid gap-4">
         @for (adoption of adoptions(); track adoption._id) {
           <article class="panel grid gap-4 md:grid-cols-[220px_1fr]">
-            <img class="h-48 w-full rounded-md object-cover bg-slate-100" [src]="adoption.pet.foto || 'https://images.unsplash.com/photo-1513360371669-4adf3dd7dff8?auto=format&fit=crop&w=900&q=80'" [alt]="adoption.pet.nombre">
+            <div class="flex aspect-[4/3] w-full items-center justify-center rounded-md bg-stone-100 md:h-48">
+              <img class="h-full w-full object-contain" [src]="adoption.pet.foto || 'https://images.unsplash.com/photo-1513360371669-4adf3dd7dff8?auto=format&fit=crop&w=900&q=80'" [alt]="adoption.pet.nombre">
+            </div>
             <div>
               <h2 class="text-xl font-semibold">{{ adoption.pet.nombre }}</h2>
               <p class="text-sm text-slate-600">{{ adoption.ciudad }} · {{ adoption.pet.especie }}</p>

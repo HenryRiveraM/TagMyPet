@@ -9,7 +9,9 @@ import { Pet, User } from '../../core/models/domain';
     @if (pet(); as profile) {
       <section class="mx-auto max-w-4xl overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm">
         <div class="relative">
-          <img class="h-[420px] w-full object-cover bg-slate-100" [src]="profile.foto || 'https://images.unsplash.com/photo-1548199973-03cce0bbc87b?auto=format&fit=crop&w=1200&q=80'" [alt]="profile.nombre">
+          <div class="flex max-h-[560px] min-h-[320px] w-full items-center justify-center bg-stone-100">
+            <img class="max-h-[560px] w-full object-contain" [src]="profile.foto || 'https://images.unsplash.com/photo-1548199973-03cce0bbc87b?auto=format&fit=crop&w=1200&q=80'" [alt]="profile.nombre">
+          </div>
           <div class="absolute inset-x-0 bottom-0 bg-gradient-to-t from-slate-950/80 to-transparent p-6 text-white">
             <div class="flex flex-wrap items-end justify-between gap-3">
               <div>

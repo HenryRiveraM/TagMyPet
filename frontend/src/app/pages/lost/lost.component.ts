@@ -32,7 +32,9 @@ import { LostReport, Pet } from '../../core/models/domain';
       <section class="grid gap-4 md:grid-cols-2">
         @for (report of reports(); track report._id) {
           <article class="panel">
-            <img class="mb-4 h-44 w-full rounded-md object-cover bg-slate-100" [src]="report.pet.foto || 'https://images.unsplash.com/photo-1583511655826-05700d52f4d9?auto=format&fit=crop&w=900&q=80'" [alt]="report.pet.nombre">
+            <div class="mb-4 flex aspect-[4/3] w-full items-center justify-center overflow-hidden rounded-md bg-stone-100">
+              <img class="h-full w-full object-contain" [src]="report.pet.foto || 'https://images.unsplash.com/photo-1583511655826-05700d52f4d9?auto=format&fit=crop&w=900&q=80'" [alt]="report.pet.nombre">
+            </div>
             <h2 class="text-xl font-semibold">{{ report.pet.nombre }}</h2>
             <p class="text-sm text-slate-600">{{ report.ciudad }} · {{ report.zona || 'Zona no especificada' }}</p>
             <p class="mt-2 text-sm">{{ report.descripcion }}</p>

@@ -12,7 +12,10 @@ import { ApiService } from '../../core/services/api.service';
       <div class="mt-3 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
         <div>
           <h1 class="text-3xl font-bold tracking-tight md:text-4xl">Hola, {{ auth.user()?.nombre }}</h1>
-          <p class="mt-2 text-slate-300">Rol {{ auth.user()?.rol }} · Plan {{ auth.user()?.plan || 'FREE' }}</p>
+          <div class="mt-3 flex flex-wrap gap-2">
+            <span class="rounded-md bg-white/10 px-3 py-1 text-sm font-semibold text-white">{{ roleLabel(auth.user()?.rol) }}</span>
+            <span class="rounded-md bg-white/10 px-3 py-1 text-sm font-semibold text-white">Plan {{ planLabel(auth.user()?.plan) }}</span>
+          </div>
         </div>
         @if (auth.user()?.rol === 'ADMIN') {
           <button class="btn bg-white text-slate-950 hover:bg-stone-100" (click)="sendReminderNotifications()">Enviar recordatorios próximos</button>
@@ -40,6 +43,21 @@ import { ApiService } from '../../core/services/api.service';
 export class DashboardComponent {
   message = '';
   constructor(public auth: AuthService, private api: ApiService) {}
+
+  roleLabel(role?: string) {
+    const labels: Record<string, string> = {
+      ADMIN: 'Administrador',
+      OWNER: 'Dueño',
+      VETERINARIO: 'Veterinario',
+      ADOPTANTE: 'Adoptante'
+    };
+    return labels[role || ''] || 'Usuario';
+  }
+
+  planLabel(plan?: string) {
+    const labels: Record<string, string> = { FREE: 'Free', PREMIUM: 'Premium' };
+    return labels[plan || ''] || 'Free';
+  }
 
   visibleCards() {
     const role = this.auth.user()?.rol;

@@ -36,7 +36,9 @@ import { Pet } from '../../core/models/domain';
       <section class="grid gap-4 md:grid-cols-2">
         @for (pet of pets(); track pet._id) {
           <article class="panel overflow-hidden p-0">
-            <img class="h-52 w-full object-cover bg-slate-100" [src]="pet.foto || 'https://images.unsplash.com/photo-1548199973-03cce0bbc87b?auto=format&fit=crop&w=900&q=80'" [alt]="pet.nombre">
+            <div class="flex aspect-[4/3] w-full items-center justify-center bg-stone-100">
+              <img class="h-full w-full object-contain" [src]="pet.foto || 'https://images.unsplash.com/photo-1548199973-03cce0bbc87b?auto=format&fit=crop&w=900&q=80'" [alt]="pet.nombre">
+            </div>
             <div class="p-5">
             <div class="flex items-start justify-between gap-3">
               <div>
