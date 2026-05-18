@@ -353,17 +353,18 @@ URL que debe grabarse en el chip:
 https://tagmypet.vercel.app/#/pet/public/TMP-LUCAS-001
 ```
 
-Opciones de grabación:
+Opción de grabación recomendada:
 
-- Android + Chrome: usar el botón `Grabar en NFC` desde la web. Requiere compatibilidad Web NFC.
-- iPhone, Safari u otros navegadores: usar `Copiar para NFC Pulse` y pegar la URL en NFC Pulse.
+- Usar `Copiar link` en TagMyPet.
+- Pegar la URL en NFC Tools.
+- NFC Tools está disponible para Apple y Android.
 
 Checklist físico:
 
 1. Ir a `Tags NFC`.
-2. Crear o elegir un tag disponible.
-3. Asignarlo a una mascota.
-4. Copiar/grabar la URL generada.
+2. Seleccionar la mascota.
+3. Copiar la URL generada.
+4. Pegar la URL en NFC Tools y grabarla en el collar.
 5. Escanear el collar.
 6. Confirmar que abre `https://tagmypet.vercel.app/#/pet/public/<codigo>`.
 7. Confirmar que el perfil público no muestra email, password ni historial privado.

@@ -24,7 +24,10 @@ import { Pet } from '../../core/models/domain';
             <input class="field" formControlName="especieOtra" placeholder="Especifica la especie">
           }
           <input class="field" formControlName="raza" placeholder="Raza">
-          <input class="field" formControlName="edad" placeholder="Edad en años" type="number" min="0">
+          <label class="block">
+            <span class="mb-1.5 block text-sm font-semibold text-slate-700">Edad de la mascota (años)</span>
+            <input class="field" formControlName="edad" placeholder="Ej. 2" type="number" min="0">
+          </label>
           <select class="field" formControlName="sexo">
             <option value="DESCONOCIDO">Sexo</option>
             <option value="MACHO">Macho</option>

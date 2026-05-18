@@ -9,9 +9,9 @@ import { Pet } from '../../core/models/domain';
   template: `
     <section class="mx-auto max-w-3xl">
       <div class="mb-6">
-        <p class="eyebrow">NFC Pulse</p>
+        <p class="eyebrow">NFC Tools</p>
         <h1 class="mt-2 text-3xl font-bold tracking-tight">Crear link NFC</h1>
-        <p class="mt-2 text-slate-600">Selecciona la mascota, copia su link público y pégalo en NFC Pulse para grabar el collar.</p>
+        <p class="mt-2 text-slate-600">Selecciona la mascota, copia su link público y pégalo en NFC Tools para grabar el collar. NFC Tools está disponible en Apple y Android.</p>
       </div>
 
       <section class="panel">
@@ -40,7 +40,7 @@ import { Pet } from '../../core/models/domain';
               </div>
 
               <div class="rounded-lg border border-stone-200 bg-stone-50 p-4">
-                <p class="text-xs font-bold uppercase tracking-wide text-slate-500">Link que debes poner en NFC Pulse</p>
+                <p class="text-xs font-bold uppercase tracking-wide text-slate-500">Link que debes poner en NFC Tools</p>
                 <p class="mt-2 break-all text-sm font-semibold text-slate-950">{{ publicProfileUrl(pet) }}</p>
               </div>
 
@@ -58,7 +58,7 @@ import { Pet } from '../../core/models/domain';
               <div class="rounded-lg bg-slate-950 p-4 text-sm text-white">
                 <p class="font-semibold">Cómo grabarlo</p>
                 <ol class="mt-2 list-decimal space-y-1 pl-5 text-slate-200">
-                  <li>Abre NFC Pulse en tu celular.</li>
+                  <li>Abre NFC Tools en tu celular Apple o Android.</li>
                   <li>Elige escribir una URL o enlace.</li>
                   <li>Pega el link copiado.</li>
                   <li>Acerca el collar NFC y grábalo.</li>
@@ -102,6 +102,6 @@ export class TagsComponent implements OnInit {
   copyLink(pet: Pet) {
     const url = this.publicProfileUrl(pet);
     navigator.clipboard?.writeText(url);
-    this.message.set('Link copiado. Ahora pégalo en NFC Pulse como URL del collar.');
+    this.message.set('Link copiado. Ahora pégalo en NFC Tools como URL del collar.');
   }
 }
