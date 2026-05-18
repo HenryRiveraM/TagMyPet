@@ -13,7 +13,20 @@ Flujo:
 ```text
 Angular SPA -> Express REST API -> MongoDB Atlas
                          |
-                    Cloudinary
+                    Cloudinary + SMTP
+```
+
+## Producción
+
+- Frontend: `https://tagmypet.vercel.app`
+- Backend: `https://tagmypet-api.onrender.com`
+- Health check: `https://tagmypet-api.onrender.com/api/health`
+
+El frontend usa hash routing para compatibilidad SPA y auditoría de links:
+
+```text
+https://tagmypet.vercel.app/#/login
+https://tagmypet.vercel.app/#/pet/public/NFC-LUNA-001
 ```
 
 ## Estructura
@@ -64,13 +77,19 @@ URLs locales:
 ```bash
 NODE_ENV=development
 PORT=4000
-MONGO_URI=mongodb+srv://user:password@cluster.mongodb.net/tagmypet
+MONGO_URI=mongodb+srv://<DB_USER>:<DB_PASSWORD>@<CLUSTER_HOST>/tagmypet
 JWT_SECRET=change-this-secret
 JWT_EXPIRES_IN=1d
 FRONTEND_URL=http://localhost:4200
 CLOUDINARY_CLOUD_NAME=your-cloud
 CLOUDINARY_API_KEY=your-key
 CLOUDINARY_API_SECRET=your-secret
+SMTP_HOST=sandbox.smtp.mailtrap.io
+SMTP_PORT=2525
+SMTP_SECURE=false
+SMTP_USER=your-smtp-user
+SMTP_PASS=your-smtp-password
+EMAIL_FROM=TagMyPet <no-reply@tagmypet.com>
 ```
 
 ## Roles
@@ -100,7 +119,7 @@ También crea mascotas, perfil NFC, historial médico, recordatorios, reporte pe
 Perfil NFC de prueba:
 
 ```text
-http://localhost:4200/pet/public/NFC-LUNA-001
+http://localhost:4200/#/pet/public/NFC-LUNA-001
 ```
 
 ## Endpoints Principales
@@ -230,15 +249,17 @@ CLOUDINARY_API_SECRET=mi_api_secret
 Para recuperación de password, verificación de email y recordatorios reales por correo configura SMTP:
 
 ```env
-SMTP_HOST=smtp.gmail.com
-SMTP_PORT=587
+SMTP_HOST=sandbox.smtp.mailtrap.io
+SMTP_PORT=2525
 SMTP_SECURE=false
-SMTP_USER=tu-email@gmail.com
-SMTP_PASS=tu-app-password
-EMAIL_FROM=TagMyPet <tu-email@gmail.com>
+SMTP_USER=tu-user-mailtrap
+SMTP_PASS=tu-pass-mailtrap
+EMAIL_FROM=TagMyPet <hello@tagmypet.test>
 ```
 
-Con Gmail necesitas una contraseña de aplicación, no tu contraseña normal. Si SMTP no está configurado, el backend no falla en desarrollo; solo registra que el email fue omitido.
+En desarrollo el proyecto está preparado para Mailtrap Sandbox. Mailtrap captura los emails dentro de su bandeja de pruebas; no los entrega a Gmail/Outlook reales salvo que configures envío transaccional con dominio verificado.
+
+Si usas Gmail necesitas una contraseña de aplicación, no tu contraseña normal. Si SMTP no está configurado, el backend no falla en desarrollo; solo registra que el email fue omitido.
 
 Los recordatorios se envían automáticamente una vez al día al iniciar el backend y también pueden enviarse manualmente desde el dashboard admin.
 
@@ -274,6 +295,12 @@ FRONTEND_URL=https://tu-frontend.vercel.app
 CLOUDINARY_CLOUD_NAME=...
 CLOUDINARY_API_KEY=...
 CLOUDINARY_API_SECRET=...
+SMTP_HOST=sandbox.smtp.mailtrap.io
+SMTP_PORT=2525
+SMTP_SECURE=false
+SMTP_USER=...
+SMTP_PASS=...
+EMAIL_FROM=TagMyPet <hello@tagmypet.test>
 ```
 
 Frontend en Netlify:
@@ -314,10 +341,77 @@ Frontend en Netlify:
 
 ## Flujo NFC Físico
 
-Para fabricar o probar un collar real:
+TagMyPet soporta tres pasos desde la web:
 
-1. Genera un código en `Tags NFC`, por ejemplo `TMP-LUCAS-001`.
-2. Copia la URL pública: `https://tu-frontend.vercel.app/pet/public/TMP-LUCAS-001`.
-3. Graba esa URL en el chip NFC con una app móvil como NFC Tools.
-4. Escanea el chip con un teléfono.
-5. El teléfono abrirá el perfil público de la mascota.
+1. **Asignar:** vincula un tag físico con una mascota desde `Tags NFC`.
+2. **Grabar:** copia o escribe en el chip la URL pública.
+3. **Verificar:** lee el chip o abre el perfil para confirmar que apunta a la mascota correcta.
+
+URL que debe grabarse en el chip:
+
+```text
+https://tagmypet.vercel.app/#/pet/public/TMP-LUCAS-001
+```
+
+Opciones de grabación:
+
+- Android + Chrome: usar el botón `Grabar en NFC` desde la web. Requiere compatibilidad Web NFC.
+- iPhone, Safari u otros navegadores: usar `Copiar para NFC Pulse` y pegar la URL en NFC Pulse.
+
+Checklist físico:
+
+1. Ir a `Tags NFC`.
+2. Crear o elegir un tag disponible.
+3. Asignarlo a una mascota.
+4. Copiar/grabar la URL generada.
+5. Escanear el collar.
+6. Confirmar que abre `https://tagmypet.vercel.app/#/pet/public/<codigo>`.
+7. Confirmar que el perfil público no muestra email, password ni historial privado.
+
+## Rotación de Secretos
+
+Si una credencial apareció en capturas, logs o commits, se debe rotar. Orden recomendado:
+
+1. MongoDB Atlas:
+   - Database Access -> elegir usuario -> Edit Password.
+   - Copiar la nueva URI.
+   - Actualizar `MONGO_URI` en Render.
+   - Redeploy backend.
+   - Probar `/api/health`.
+2. Cloudinary:
+   - Settings -> API Keys -> generar/rotar `API Secret`.
+   - Actualizar `CLOUDINARY_API_SECRET` en Render y en `backend/.env` local.
+   - Redeploy backend.
+   - Crear mascota con foto para validar subida.
+3. Mailtrap:
+   - Reset credentials del sandbox o crear inbox nuevo.
+   - Actualizar `SMTP_USER` y `SMTP_PASS` en Render y en `backend/.env` local.
+   - Ejecutar `npm run test:email -- tu@email.com`.
+4. JWT:
+   - Cambiar `JWT_SECRET` por un valor largo.
+   - Redeploy backend.
+   - Cerrar sesión en el frontend y volver a iniciar sesión.
+
+Nunca subir `backend/.env` al repo. Solo `backend/.env.example` con placeholders.
+
+## QA Mobile
+
+Checklist de QA en celular real:
+
+1. Abrir `https://tagmypet.vercel.app`.
+2. Confirmar que no hay scroll horizontal; solo scroll vertical.
+3. Registro: crear cuenta, ver password, enviar formulario.
+4. Login: iniciar sesión y cerrar sesión.
+5. Dashboard: verificar rol y plan en texto legible.
+6. Mascotas: crear mascota con foto y confirmar que la imagen no sale cortada.
+7. Perdidos: revisar tarjetas, foto completa y botón compartir.
+8. Adopciones: revisar publicaciones y formulario.
+9. Tags NFC: asignar, copiar URL, abrir perfil y verificar flujo NFC.
+10. Perfil NFC público: abrir desde celular sin login y confirmar que la foto se ve completa.
+
+Resultado esperado:
+
+- Sin scroll horizontal global.
+- Botones tocables sin solaparse.
+- Fotos completas de mascota.
+- Links NFC usando `/#/pet/public/<codigo>`.
