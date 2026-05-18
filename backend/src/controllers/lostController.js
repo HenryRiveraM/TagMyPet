@@ -7,10 +7,30 @@ export const publicLostReports = asyncHandler(async (req, res) => {
   const query = { estado: 'LOST' };
   if (req.query.ciudad) query.ciudad = new RegExp(req.query.ciudad, 'i');
   let reports = await LostReport.find(query).populate('pet', 'nombre especie raza color foto codigoNFC').sort('-createdAt');
+
   if (req.query.especie) {
     const especie = String(req.query.especie).toLowerCase();
     reports = reports.filter((report) => report.pet?.especie?.toLowerCase() === especie);
   }
+
+  if (req.query.raza) {
+    const raza = String(req.query.raza).toLowerCase();
+    reports = reports.filter((report) => report.pet?.raza?.toLowerCase().includes(raza));
+  }
+
+  if (req.query.texto) {
+    const text = String(req.query.texto).toLowerCase();
+    reports = reports.filter((report) => [
+      report.pet?.nombre,
+      report.pet?.especie,
+      report.pet?.raza,
+      report.ciudad,
+      report.zona,
+      report.descripcion,
+      report.contactoPublico
+    ].some((value) => String(value || '').toLowerCase().includes(text)));
+  }
+
   res.json(reports);
 });
 

@@ -10,6 +10,23 @@ import { Adoption, Pet } from '../../core/models/domain';
     <section class="mb-6">
       <h1 class="text-3xl font-bold">Adopciones responsables</h1>
       <p class="text-slate-600">Publicaciones abiertas con cuestionario y firma digital.</p>
+      <form class="mt-4 grid gap-2 sm:grid-cols-[1fr_1fr_1fr_auto]" [formGroup]="filter" (ngSubmit)="load()">
+        <select class="field" formControlName="especie">
+          <option value="">Especie</option>
+          <option value="Perro">Perro</option>
+          <option value="Gato">Gato</option>
+          <option value="Otro">Otro</option>
+        </select>
+        <input class="field" formControlName="raza" placeholder="Raza">
+        <select class="field" formControlName="edad">
+          <option value="">Edad máxima</option>
+          <option value="1">Hasta 1 año</option>
+          <option value="3">Hasta 3 años</option>
+          <option value="7">Hasta 7 años</option>
+          <option value="20">Todas las edades</option>
+        </select>
+        <button class="btn">Filtrar</button>
+      </form>
     </section>
     <div class="grid gap-6 lg:grid-cols-[360px_1fr]">
       <section class="panel">
@@ -29,7 +46,7 @@ import { Adoption, Pet } from '../../core/models/domain';
             </div>
             <div>
               <h2 class="text-xl font-semibold">{{ adoption.pet.nombre }}</h2>
-              <p class="text-sm text-slate-600">{{ adoption.ciudad }} · {{ adoption.pet.especie }}</p>
+              <p class="text-sm text-slate-600">{{ adoption.ciudad }} · {{ adoption.pet.especie }} · {{ adoption.pet.edad || 0 }} años</p>
               <p class="mt-2 text-sm">{{ adoption.descripcion }}</p>
               <form class="mt-4 grid gap-2 md:grid-cols-2" [formGroup]="applyForm" (ngSubmit)="apply(adoption._id)">
                 <input class="field" formControlName="espacio" placeholder="Espacio disponible">
@@ -51,6 +68,7 @@ export class AdoptionsComponent implements OnInit {
   private api = inject(ApiService);
   adoptions = signal<Adoption[]>([]);
   pets = signal<Pet[]>([]);
+  filter = this.fb.nonNullable.group({ especie: [''], raza: [''], edad: [''] });
   publishForm = this.fb.nonNullable.group({ pet: ['', Validators.required], ciudad: ['', Validators.required], descripcion: ['', Validators.required] });
   applyForm = this.fb.nonNullable.group({
     espacio: ['', Validators.required],
@@ -61,7 +79,7 @@ export class AdoptionsComponent implements OnInit {
   });
 
   ngOnInit() { this.load(); this.api.pets().subscribe({ next: (pets) => { this.pets.set(pets); if (pets[0]) this.publishForm.patchValue({ pet: pets[0]._id }); }, error: () => undefined }); }
-  load() { this.api.adoptions().subscribe((adoptions) => this.adoptions.set(adoptions)); }
+  load() { this.api.adoptions(this.filter.getRawValue()).subscribe((adoptions) => this.adoptions.set(adoptions)); }
   publish() { this.api.createAdoption({ ...this.publishForm.getRawValue(), requisitos: ['Seguimiento veterinario'] }).subscribe(() => this.load()); }
   apply(id: string) {
     const { firmaDigital, ...cuestionario } = this.applyForm.getRawValue();

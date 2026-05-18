@@ -9,6 +9,14 @@ export class ApiService {
 
   constructor(private http: HttpClient) {}
 
+  private cleanParams(filters: Record<string, unknown>) {
+    return Object.fromEntries(
+      Object.entries(filters)
+        .filter(([, value]) => value !== undefined && value !== null && String(value).trim() !== '')
+        .map(([key, value]) => [key, String(value)])
+    );
+  }
+
   pets() { return this.http.get<Pet[]>(`${this.api}/pets`); }
   createPet(data: FormData) { return this.http.post<Pet>(`${this.api}/pets`, data); }
   updatePet(id: string, data: FormData) { return this.http.put<Pet>(`${this.api}/pets/${id}`, data); }
@@ -19,13 +27,16 @@ export class ApiService {
   reminders() { return this.http.get<Reminder[]>(`${this.api}/reminders`); }
   createReminder(data: object) { return this.http.post(`${this.api}/reminders`, data); }
   toggleReminder(id: string) { return this.http.patch<Reminder>(`${this.api}/reminders/${id}/toggle`, {}); }
-  lostReports(filters: { ciudad?: string; especie?: string } = {}) {
-    const params = Object.fromEntries(Object.entries(filters).filter(([, value]) => Boolean(value)));
+  lostReports(filters: { texto?: string; ciudad?: string; especie?: string; raza?: string } = {}) {
+    const params = this.cleanParams(filters);
     return this.http.get<LostReport[]>(`${this.api}/lost`, { params });
   }
   createLost(data: object) { return this.http.post(`${this.api}/lost`, data); }
   markFound(id: string) { return this.http.patch(`${this.api}/lost/${id}/found`, {}); }
-  adoptions() { return this.http.get<Adoption[]>(`${this.api}/adoptions`); }
+  adoptions(filters: { especie?: string; raza?: string; edad?: string | number } = {}) {
+    const params = this.cleanParams(filters);
+    return this.http.get<Adoption[]>(`${this.api}/adoptions`, { params });
+  }
   createAdoption(data: object) { return this.http.post(`${this.api}/adoptions`, data); }
   applyAdoption(id: string, data: object) { return this.http.post(`${this.api}/adoptions/${id}/apply`, data); }
   adminStats() { return this.http.get<Record<string, number>>(`${this.api}/admin/stats`); }

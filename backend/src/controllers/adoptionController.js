@@ -3,8 +3,26 @@ import { Pet } from '../models/Pet.js';
 import { ApiError } from '../utils/apiError.js';
 import { asyncHandler } from '../utils/asyncHandler.js';
 
-export const listAdoptions = asyncHandler(async (_req, res) => {
-  const adoptions = await Adoption.find({ estado: 'OPEN' }).populate('pet', 'nombre especie raza foto edad sexo').populate('owner', 'nombre ciudad');
+export const listAdoptions = asyncHandler(async (req, res) => {
+  let adoptions = await Adoption.find({ estado: 'OPEN' }).populate('pet', 'nombre especie raza foto edad sexo').populate('owner', 'nombre ciudad');
+
+  if (req.query.especie) {
+    const especie = String(req.query.especie).toLowerCase();
+    adoptions = adoptions.filter((adoption) => adoption.pet?.especie?.toLowerCase() === especie);
+  }
+
+  if (req.query.raza) {
+    const raza = String(req.query.raza).toLowerCase();
+    adoptions = adoptions.filter((adoption) => adoption.pet?.raza?.toLowerCase().includes(raza));
+  }
+
+  if (req.query.edad) {
+    const maxAge = Number(req.query.edad);
+    if (!Number.isNaN(maxAge)) {
+      adoptions = adoptions.filter((adoption) => Number(adoption.pet?.edad ?? 0) <= maxAge);
+    }
+  }
+
   res.json(adoptions);
 });
 
