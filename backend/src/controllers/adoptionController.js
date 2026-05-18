@@ -41,7 +41,7 @@ export const applyToAdoption = asyncHandler(async (req, res) => {
   if (!adoption || adoption.estado !== 'OPEN') throw new ApiError('Adopción no disponible', 404);
   const application = await AdoptionApplication.create({
     adoption: adoption._id,
-    adoptante: req.user._id,
+    solicitante: req.user._id,
     cuestionario: req.body.cuestionario,
     firmaDigital: req.body.firmaDigital
   });
@@ -51,6 +51,6 @@ export const applyToAdoption = asyncHandler(async (req, res) => {
 export const listApplications = asyncHandler(async (req, res) => {
   const applications = await AdoptionApplication.find()
     .populate({ path: 'adoption', populate: [{ path: 'pet', select: 'nombre foto' }, { path: 'owner', select: '_id nombre apellido' }] })
-    .populate('adoptante', 'nombre apellido email telefono ciudad');
+    .populate('solicitante', 'nombre apellido email telefono ciudad');
   res.json(req.user.rol === 'ADMIN' ? applications : applications.filter((a) => a.adoption?.owner?._id?.toString() === req.user._id.toString()));
 });

@@ -8,5 +8,5 @@ export const adoptionRoutes = Router();
 
 adoptionRoutes.get('/', listAdoptions);
 adoptionRoutes.post('/', protect, allowRoles('ADMIN', 'OWNER'), adoptionRules, validate, createAdoption);
-adoptionRoutes.post('/:id/apply', protect, allowRoles('ADOPTANTE', 'ADMIN'), applicationRules, validate, applyToAdoption);
+adoptionRoutes.post('/:id/apply', protect, allowRoles('ADMIN', 'OWNER'), applicationRules, validate, applyToAdoption);
 adoptionRoutes.get('/applications', protect, allowRoles('ADMIN', 'OWNER'), listApplications);

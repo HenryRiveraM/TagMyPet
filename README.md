@@ -95,9 +95,8 @@ EMAIL_FROM=TagMyPet <no-reply@tagmypet.com>
 ## Roles
 
 - `ADMIN`: gestiona usuarios, suspensión, métricas y moderación.
-- `OWNER`: registra mascotas, historial, recordatorios, perdidos y adopciones.
+- `OWNER`: registra mascotas, historial, recordatorios, perdidos, adopciones y solicitudes de adopción.
 - `VETERINARIO`: consulta mascotas autorizadas y actualiza historial médico.
-- `ADOPTANTE`: solicita adopciones con cuestionario y firma digital.
 
 ## Seed
 
@@ -106,7 +105,6 @@ El seed crea:
 - `admin@tagmypet.com`
 - `owner@tagmypet.com`
 - `vet@tagmypet.com`
-- `adoptante@tagmypet.com`
 
 Password para todos:
 
@@ -318,11 +316,10 @@ Frontend en Netlify:
 6. Crear mascota y abrir su perfil NFC.
 7. Crear historial y recordatorios.
 8. Publicar reporte perdido.
-9. Login con `adoptante@tagmypet.com`.
-10. Solicitar adopción con cuestionario y firma digital.
-11. Login con `vet@tagmypet.com`.
-12. Solicitar acceso médico con `NFC-LUNA-001` o revisar el acceso aprobado del seed.
-13. Login con `admin@tagmypet.com` y abrir `Tags NFC` para crear lote y asignar tags.
+9. Desde la cuenta `owner@tagmypet.com`, solicitar adopción con cuestionario y firma digital.
+10. Login con `vet@tagmypet.com`.
+11. Solicitar acceso médico con `NFC-LUNA-001` o revisar el acceso aprobado del seed.
+12. Login con `admin@tagmypet.com` y abrir `Tags NFC` para crear lote y asignar tags.
 
 ## Guion de Demo Recomendado
 

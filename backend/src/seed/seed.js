@@ -26,11 +26,10 @@ await Promise.all([
   NfcTag.deleteMany()
 ]);
 
-const [admin, owner, vet, adopter] = await User.create([
+const [admin, owner, vet] = await User.create([
   { nombre: 'Admin', apellido: 'TagMyPet', email: 'admin@tagmypet.com', password: 'Password123', rol: 'ADMIN', ciudad: 'La Paz', telefono: '+59170000001', plan: 'PREMIUM', emailVerified: true },
   { nombre: 'Lucia', apellido: 'Rojas', email: 'owner@tagmypet.com', password: 'Password123', rol: 'OWNER', ciudad: 'La Paz', telefono: '+59170000002', plan: 'PREMIUM', emailVerified: true },
-  { nombre: 'Mateo', apellido: 'Vargas', email: 'vet@tagmypet.com', password: 'Password123', rol: 'VETERINARIO', ciudad: 'Cochabamba', telefono: '+59170000003', emailVerified: true },
-  { nombre: 'Sofia', apellido: 'Mendez', email: 'adoptante@tagmypet.com', password: 'Password123', rol: 'ADOPTANTE', ciudad: 'Santa Cruz', telefono: '+59170000004', emailVerified: true }
+  { nombre: 'Mateo', apellido: 'Vargas', email: 'vet@tagmypet.com', password: 'Password123', rol: 'VETERINARIO', ciudad: 'Cochabamba', telefono: '+59170000003', emailVerified: true }
 ]);
 
 const [luna, max] = await Pet.create([
@@ -142,6 +141,6 @@ await Adoption.create({
 });
 
 console.log('Seed completo');
-console.log('Credenciales: admin/owner/vet/adoptante @tagmypet.com con Password123');
-console.log(`Usuarios creados: ${admin.email}, ${owner.email}, ${vet.email}, ${adopter.email}`);
+console.log('Credenciales: admin/owner/vet @tagmypet.com con Password123');
+console.log(`Usuarios creados: ${admin.email}, ${owner.email}, ${vet.email}`);
 process.exit(0);

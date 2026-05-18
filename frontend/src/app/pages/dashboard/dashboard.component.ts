@@ -48,8 +48,7 @@ export class DashboardComponent {
     const labels: Record<string, string> = {
       ADMIN: 'Administrador',
       OWNER: 'Dueño',
-      VETERINARIO: 'Veterinario',
-      ADOPTANTE: 'Adoptante'
+      VETERINARIO: 'Veterinario'
     };
     return labels[role || ''] || 'Usuario';
   }
@@ -67,8 +66,8 @@ export class DashboardComponent {
       { tag: 'Alertas', title: 'Recordatorios', text: 'Alertas de vacunas y medicación.', href: '/recordatorios', roles: ['ADMIN', 'OWNER'] },
       { tag: 'Clínicas', title: 'Clínicas', text: 'Veterinarias asociadas y autorizaciones.', href: '/clinicas', roles: ['ADMIN', 'OWNER', 'VETERINARIO'] },
       { tag: 'Lotes', title: 'Tags NFC', text: 'Inventario, lotes y asignación física.', href: '/tags-nfc', roles: ['ADMIN', 'OWNER'] },
-      { tag: 'Hogar', title: 'Adopciones', text: 'Publica o solicita adopciones.', href: '/adopciones', roles: ['ADMIN', 'OWNER', 'ADOPTANTE'] },
-      { tag: 'Mapa', title: 'Perdidos', text: 'Reportes públicos y encontrados.', href: '/perdidos', roles: ['ADMIN', 'OWNER', 'ADOPTANTE', 'VETERINARIO'] },
+      { tag: 'Hogar', title: 'Adopciones', text: 'Publica o solicita adopciones.', href: '/adopciones', roles: ['ADMIN', 'OWNER'] },
+      { tag: 'Mapa', title: 'Perdidos', text: 'Reportes públicos y encontrados.', href: '/perdidos', roles: ['ADMIN', 'OWNER', 'VETERINARIO'] },
       { tag: 'Admin', title: 'Admin', text: 'Usuarios, moderación y estadísticas.', href: '/admin', roles: ['ADMIN'] }
     ];
     return cards.filter((card) => role && card.roles.includes(role));

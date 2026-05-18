@@ -55,7 +55,7 @@ export class HomeComponent implements OnInit {
   metrics = [
     { value: 'NFC', label: 'identificación' },
     { value: '24/7', label: 'perfil público' },
-    { value: '4 roles', label: 'operación' }
+    { value: '3 roles', label: 'operación' }
   ];
 
   features = [

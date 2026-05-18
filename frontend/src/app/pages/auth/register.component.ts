@@ -65,7 +65,6 @@ import { AuthService } from '../../core/services/auth.service';
             <select class="field" formControlName="rol">
               <option value="OWNER">Dueño</option>
               <option value="VETERINARIO">Veterinario</option>
-              <option value="ADOPTANTE">Adoptante</option>
             </select>
           </label>
           <label class="block min-w-0 sm:col-span-2">

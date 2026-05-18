@@ -11,7 +11,7 @@ const adoptionSchema = new mongoose.Schema({
 
 const adoptionApplicationSchema = new mongoose.Schema({
   adoption: { type: mongoose.Schema.Types.ObjectId, ref: 'Adoption', required: true },
-  adoptante: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+  solicitante: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
   cuestionario: {
     espacio: { type: String, required: true },
     experiencia: { type: String, required: true },

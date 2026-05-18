@@ -2,7 +2,7 @@ import crypto from 'crypto';
 import mongoose from 'mongoose';
 import bcrypt from 'bcrypt';
 
-const roles = ['ADMIN', 'OWNER', 'VETERINARIO', 'ADOPTANTE'];
+const roles = ['ADMIN', 'OWNER', 'VETERINARIO'];
 
 const userSchema = new mongoose.Schema({
   nombre: { type: String, required: true, trim: true },
