@@ -7,6 +7,12 @@ const clinicSchema = new mongoose.Schema({
   email: { type: String, lowercase: true, trim: true },
   ciudad: { type: String, required: true, trim: true },
   direccion: { type: String, required: true, trim: true },
+  sucursales: [{
+    nombre: { type: String, trim: true },
+    ciudad: { type: String, trim: true },
+    direccion: { type: String, trim: true },
+    telefono: { type: String, trim: true }
+  }],
   estado: { type: String, enum: ['PENDING', 'ACTIVE', 'SUSPENDED'], default: 'PENDING' },
   administradores: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
   veterinarios: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }]

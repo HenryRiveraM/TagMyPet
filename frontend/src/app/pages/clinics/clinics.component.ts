@@ -14,7 +14,7 @@ import { Clinic, Pet, PetAccessRequest } from '../../core/models/domain';
     </section>
 
     <div class="grid gap-6 lg:grid-cols-[360px_1fr]">
-      @if (auth.user()?.rol === 'ADMIN' || auth.user()?.rol === 'VETERINARIO') {
+      @if (auth.user()?.rol === 'ADMIN' || (auth.user()?.rol === 'VETERINARIO' && !ownClinic())) {
         <section class="panel">
           <h2 class="font-semibold">{{ auth.user()?.rol === 'ADMIN' ? 'Registrar clínica oficial' : 'Solicitar clínica oficial' }}</h2>
           <p class="mt-2 text-sm text-slate-600">
@@ -31,8 +31,20 @@ import { Clinic, Pet, PetAccessRequest } from '../../core/models/domain';
             <input class="field" formControlName="email" placeholder="Email">
             <input class="field" formControlName="ciudad" placeholder="Ciudad *">
             <input class="field" formControlName="direccion" placeholder="Dirección *">
+            <textarea class="field min-h-28" formControlName="sucursalesTexto" placeholder="Sucursales opcionales: una por línea, formato Nombre | Ciudad | Dirección | Teléfono"></textarea>
             <button class="btn w-full" [disabled]="clinicForm.invalid">{{ auth.user()?.rol === 'ADMIN' ? 'Guardar clínica' : 'Enviar solicitud' }}</button>
           </form>
+        </section>
+      }
+      @if (auth.user()?.rol === 'VETERINARIO' && ownClinic(); as clinic) {
+        <section class="panel">
+          <h2 class="font-semibold">Tu clínica veterinaria</h2>
+          <p class="mt-2 text-sm text-slate-600">Cada cuenta veterinaria solo puede registrar una clínica. Las sucursales se manejan dentro de esta misma ficha.</p>
+          <div class="mt-4 rounded-md bg-stone-100 p-4">
+            <p class="font-semibold">{{ clinic.nombre }}</p>
+            <p class="mt-1 text-sm text-slate-600">{{ clinic.ciudad }} · {{ clinic.direccion }}</p>
+            <span class="mt-3 inline-flex rounded-md bg-white px-2 py-1 text-xs font-bold text-brand">{{ clinic.estado }}</span>
+          </div>
         </section>
       }
 
@@ -79,6 +91,16 @@ import { Clinic, Pet, PetAccessRequest } from '../../core/models/domain';
             <button class="btn-outline mt-4" (click)="updateClinic(clinic._id, 'SUSPENDED')">Suspender</button>
           }
           <p class="mt-3 text-xs text-slate-500">Veterinarios: {{ clinic.veterinarios?.length || 0 }}</p>
+          @if (clinic.sucursales?.length) {
+            <div class="mt-4 rounded-md bg-stone-100 p-3">
+              <p class="text-xs font-bold uppercase tracking-wide text-slate-500">Sucursales</p>
+              <ul class="mt-2 space-y-1 text-sm text-slate-700">
+                @for (branch of branches(clinic); track branchKey(branch)) {
+                  <li>{{ branch.nombre }} · {{ branch.ciudad }} · {{ branch.direccion }} @if (branch.telefono) { · {{ branch.telefono }} }</li>
+                }
+              </ul>
+            </div>
+          }
         </article>
       }
     </section>
@@ -123,7 +145,8 @@ export class ClinicsComponent implements OnInit {
     telefono: ['', Validators.required],
     email: [''],
     ciudad: ['', Validators.required],
-    direccion: ['', Validators.required]
+    direccion: ['', Validators.required],
+    sucursalesTexto: ['']
   });
   accessForm = this.fb.nonNullable.group({ nfcCode: ['', Validators.required], clinic: ['', Validators.required] });
 
@@ -137,11 +160,25 @@ export class ClinicsComponent implements OnInit {
     this.api.accessRequests().subscribe((requests) => this.requests.set(requests));
   }
   activeClinics() { return this.clinics().filter((clinic) => clinic.estado === 'ACTIVE'); }
+  ownClinic() {
+    const userId = this.auth.user()?.id || this.auth.user()?._id;
+    return this.clinics().find((clinic) =>
+      clinic.administradores?.some((admin) => (admin.id || admin._id) === userId) ||
+      clinic.veterinarios?.some((vet) => (vet.id || vet._id) === userId)
+    ) || null;
+  }
+  branches(clinic: Clinic) { return clinic.sucursales || []; }
+  branchKey(branch: { nombre?: string; direccion?: string }) {
+    return `${branch.nombre || 'Sucursal'}-${branch.direccion || ''}`;
+  }
   createClinic() {
-    this.api.createClinic(this.clinicForm.getRawValue()).subscribe(() => {
-      this.clinicForm.reset();
-      this.message.set(this.auth.user()?.rol === 'ADMIN' ? 'Clínica creada' : 'Solicitud enviada al admin');
-      this.load();
+    this.api.createClinic(this.clinicForm.getRawValue()).subscribe({
+      next: () => {
+        this.clinicForm.reset();
+        this.message.set(this.auth.user()?.rol === 'ADMIN' ? 'Clínica creada' : 'Solicitud enviada al admin');
+        this.load();
+      },
+      error: (err) => this.message.set(err.error?.message || 'No se pudo crear la clínica')
     });
   }
   requestAccess() { this.api.requestPetAccess(this.accessForm.getRawValue()).subscribe(() => { this.message.set('Solicitud enviada al dueño'); this.load(); }); }

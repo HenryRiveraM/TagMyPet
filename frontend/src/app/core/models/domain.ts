@@ -68,6 +68,7 @@ export interface Clinic {
   email?: string;
   ciudad: string;
   direccion: string;
+  sucursales?: Array<{ nombre?: string; ciudad?: string; direccion?: string; telefono?: string }>;
   estado: 'PENDING' | 'ACTIVE' | 'SUSPENDED';
   veterinarios?: User[];
   administradores?: User[];

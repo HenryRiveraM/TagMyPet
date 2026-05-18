@@ -5,17 +5,40 @@ import { User } from '../models/User.js';
 import { ApiError } from '../utils/apiError.js';
 import { asyncHandler } from '../utils/asyncHandler.js';
 
+function parseBranches(value = '') {
+  return String(value)
+    .split('\n')
+    .map((line) => line.trim())
+    .filter(Boolean)
+    .slice(0, 10)
+    .map((line) => {
+      const [nombre = 'Sucursal', ciudad = '', direccion = '', telefono = ''] = line.split('|').map((part) => part.trim());
+      return { nombre, ciudad, direccion, telefono };
+    });
+}
+
 export const listClinics = asyncHandler(async (req, res) => {
   const query = req.user.rol === 'ADMIN'
     ? {}
     : { $or: [{ administradores: req.user._id }, { veterinarios: req.user._id }, { estado: 'ACTIVE' }] };
-  const clinics = await Clinic.find(query).populate('veterinarios', 'nombre apellido email rol').sort('nombre');
+  const clinics = await Clinic.find(query)
+    .populate('administradores', 'nombre apellido email rol')
+    .populate('veterinarios', 'nombre apellido email rol')
+    .sort('nombre');
   res.json(clinics);
 });
 
 export const createClinic = asyncHandler(async (req, res) => {
+  if (req.user.rol === 'VETERINARIO') {
+    const existing = await Clinic.exists({ $or: [{ administradores: req.user._id }, { veterinarios: req.user._id }] });
+    if (existing) throw new ApiError('Ya tienes una clínica registrada. Maneja sucursales dentro de esa clínica.', 409);
+  }
+
+  const data = { ...req.body, sucursales: parseBranches(req.body.sucursalesTexto) };
+  delete data.sucursalesTexto;
+
   const clinic = await Clinic.create({
-    ...req.body,
+    ...data,
     estado: req.user.rol === 'ADMIN' ? 'ACTIVE' : 'PENDING',
     administradores: [req.user._id],
     veterinarios: req.user.rol === 'VETERINARIO' ? [req.user._id] : []
