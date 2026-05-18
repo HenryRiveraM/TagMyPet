@@ -14,9 +14,17 @@ import { Pet } from '../../core/models/domain';
         <h1 class="mt-2 text-2xl font-bold tracking-tight">Mascotas</h1>
         <form class="mt-5 space-y-3" [formGroup]="form" (ngSubmit)="create()">
           <input class="field" formControlName="nombre" placeholder="Nombre">
-          <input class="field" formControlName="especie" placeholder="Especie">
+          <select class="field" formControlName="especie">
+            <option value="">Especie</option>
+            <option value="Perro">Perro</option>
+            <option value="Gato">Gato</option>
+            <option value="Otro">Otro</option>
+          </select>
+          @if (form.controls.especie.value === 'Otro') {
+            <input class="field" formControlName="especieOtra" placeholder="Especifica la especie">
+          }
           <input class="field" formControlName="raza" placeholder="Raza">
-          <input class="field" formControlName="edad" placeholder="Edad" type="number">
+          <input class="field" formControlName="edad" placeholder="Edad en años" type="number" min="0">
           <select class="field" formControlName="sexo">
             <option value="DESCONOCIDO">Sexo</option>
             <option value="MACHO">Macho</option>
@@ -47,7 +55,10 @@ import { Pet } from '../../core/models/domain';
               </div>
               <span class="badge max-w-[180px] break-all">{{ pet.codigoNFC }}</span>
             </div>
-            <a class="mt-4 block text-sm font-semibold text-brand" [routerLink]="['/pet/public', pet.codigoNFC]">Perfil NFC público</a>
+            <div class="mt-4 rounded-md bg-stone-100 p-3">
+              <p class="text-xs font-bold uppercase tracking-wide text-slate-500">Perfil que abre el NFC</p>
+              <a class="mt-1 block break-all text-sm font-semibold text-brand" [routerLink]="['/pet/public', pet.codigoNFC]">{{ publicProfileUrl(pet) }}</a>
+            </div>
             <div class="mt-4 flex gap-2">
               <button class="btn-outline" (click)="edit(pet)">Editar</button>
               <button class="btn-outline" (click)="remove(pet)">Eliminar</button>
@@ -72,6 +83,7 @@ export class PetsComponent implements OnInit {
   form = this.fb.nonNullable.group({
     nombre: ['', Validators.required],
     especie: ['', Validators.required],
+    especieOtra: [''],
     raza: [''],
     edad: [0],
     sexo: ['DESCONOCIDO'],
@@ -91,11 +103,21 @@ export class PetsComponent implements OnInit {
 
   create() {
     if (this.form.invalid || this.saving()) return;
+    if (this.form.controls.especie.value === 'Otro' && !this.form.controls.especieOtra.value.trim()) {
+      this.isError.set(true);
+      this.message.set('Especifica la especie de la mascota.');
+      return;
+    }
     this.saving.set(true);
     this.message.set('');
     this.isError.set(false);
     const data = new FormData();
-    Object.entries(this.form.getRawValue()).forEach(([key, value]) => data.append(key, String(value ?? '')));
+    const raw = this.form.getRawValue();
+    Object.entries(raw).forEach(([key, value]) => {
+      if (key === 'especieOtra') return;
+      const resolved = key === 'especie' && raw.especie === 'Otro' ? raw.especieOtra : value;
+      data.append(key, String(resolved ?? ''));
+    });
     if (this.file) data.append('foto', this.file);
     const wasEditing = Boolean(this.editingId());
     const request = wasEditing ? this.api.updatePet(this.editingId() as string, data) : this.api.createPet(data);
@@ -117,11 +139,14 @@ export class PetsComponent implements OnInit {
   }
 
   edit(pet: Pet) {
+    const knownSpecies = ['Perro', 'Gato'];
+    const isKnownSpecies = knownSpecies.includes(pet.especie);
     this.editingId.set(pet._id);
     this.message.set('');
     this.form.patchValue({
       nombre: pet.nombre,
-      especie: pet.especie,
+      especie: isKnownSpecies ? pet.especie : 'Otro',
+      especieOtra: isKnownSpecies ? '' : pet.especie,
       raza: pet.raza || '',
       edad: pet.edad || 0,
       sexo: pet.sexo || 'DESCONOCIDO',
@@ -134,7 +159,7 @@ export class PetsComponent implements OnInit {
 
   cancelEdit(clearMessage = true) {
     this.editingId.set(null);
-    this.form.reset({ sexo: 'DESCONOCIDO', edad: 0, esterilizado: false });
+    this.form.reset({ especie: '', especieOtra: '', sexo: 'DESCONOCIDO', edad: 0, esterilizado: false });
     this.file = null;
     if (this.fileInput) this.fileInput.nativeElement.value = '';
     if (clearMessage) this.message.set('');
@@ -146,5 +171,9 @@ export class PetsComponent implements OnInit {
       next: () => { this.message.set('Mascota eliminada'); this.load(); },
       error: (err) => { this.isError.set(true); this.message.set(err.error?.message || 'No se pudo eliminar'); }
     });
+  }
+
+  publicProfileUrl(pet: Pet) {
+    return `${location.origin}/#/pet/public/${encodeURIComponent(pet.codigoNFC)}`;
   }
 }

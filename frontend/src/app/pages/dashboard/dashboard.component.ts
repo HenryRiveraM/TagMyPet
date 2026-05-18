@@ -62,7 +62,7 @@ export class DashboardComponent {
   visibleCards() {
     const role = this.auth.user()?.rol;
     const cards = [
-      { tag: 'NFC', title: 'Mascotas', text: 'Registra perfiles NFC y datos críticos.', href: '/mascotas', roles: ['ADMIN', 'OWNER', 'VETERINARIO'] },
+      { tag: 'NFC', title: 'Mis mascotas', text: 'Registra perfiles NFC y datos críticos.', href: '/mascotas', roles: ['ADMIN', 'OWNER', 'VETERINARIO'] },
       { tag: 'Salud', title: 'Historial', text: 'Vacunas, tratamientos y controles.', href: '/historial', roles: ['ADMIN', 'OWNER', 'VETERINARIO'] },
       { tag: 'Alertas', title: 'Recordatorios', text: 'Alertas de vacunas y medicación.', href: '/recordatorios', roles: ['ADMIN', 'OWNER'] },
       { tag: 'Clínicas', title: 'Clínicas', text: 'Veterinarias asociadas y autorizaciones.', href: '/clinicas', roles: ['ADMIN', 'OWNER', 'VETERINARIO'] },

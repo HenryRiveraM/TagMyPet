@@ -1,5 +1,6 @@
-import { Component } from '@angular/core';
-import { RouterLink } from '@angular/router';
+import { Component, OnInit, inject } from '@angular/core';
+import { Router, RouterLink } from '@angular/router';
+import { AuthService } from '../../core/services/auth.service';
 
 @Component({
   standalone: true,
@@ -43,7 +44,14 @@ import { RouterLink } from '@angular/router';
     </section>
   `
 })
-export class HomeComponent {
+export class HomeComponent implements OnInit {
+  private auth = inject(AuthService);
+  private router = inject(Router);
+
+  ngOnInit() {
+    if (this.auth.user()) this.router.navigateByUrl('/dashboard');
+  }
+
   metrics = [
     { value: 'NFC', label: 'identificación' },
     { value: '24/7', label: 'perfil público' },
