@@ -160,13 +160,14 @@ import { Clinic, Pet, PetAccessRequest } from '../../core/models/domain';
       <div class="mt-5 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-semibold text-red-800 shadow-sm dark:border-red-500/20 dark:bg-red-500/10 dark:text-red-200">{{ error() }}</div>
     }
 
-    <section class="mt-8">
-      <div class="mb-4 flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
+    <section class="mt-8 rounded-2xl border border-white/70 bg-white/70 p-4 shadow-sm shadow-stone-200/60 backdrop-blur-xl dark:border-white/10 dark:bg-white/[0.03] dark:shadow-black/20 md:p-5">
+      <div class="mb-5 flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
         <div>
           <p class="eyebrow">Directorio</p>
           <h2 class="mt-2 text-2xl font-bold tracking-tight text-slate-950 dark:text-white">Clínicas registradas</h2>
+          <p class="mt-1 text-sm text-slate-600 dark:text-zinc-400">Clínicas oficiales visibles para dueños y veterinarios autorizados.</p>
         </div>
-        <p class="text-sm text-slate-500 dark:text-zinc-400">{{ activeClinics().length }} oficiales activas</p>
+        <span class="inline-flex w-fit items-center rounded-full border border-stone-200 bg-white px-3 py-1.5 text-sm font-bold text-slate-700 shadow-sm dark:border-white/10 dark:bg-white/5 dark:text-zinc-200">{{ activeClinics().length }} oficiales activas</span>
       </div>
       @if (!clinics().length && !isLoading()) {
         <div class="rounded-2xl border border-dashed border-stone-300 bg-white/70 p-8 text-center text-sm text-slate-600 dark:border-white/10 dark:bg-zinc-950/70 dark:text-zinc-300">Todavía no hay clínicas registradas.</div>

@@ -7,9 +7,9 @@ import { AuthService } from './core/services/auth.service';
   standalone: true,
   imports: [RouterOutlet, RouterLink],
   template: `
-    <header class="sticky top-0 z-30 border-b border-white/70 bg-white/85 shadow-sm shadow-slate-200/60 backdrop-blur-xl">
+    <header class="sticky top-0 z-30 border-b border-white/70 bg-white/85 shadow-sm shadow-slate-200/60 backdrop-blur-xl dark:border-white/10 dark:bg-zinc-950/80 dark:shadow-black/30">
       <nav class="mx-auto flex max-w-7xl flex-col gap-3 px-4 py-3 md:flex-row md:items-center md:justify-between">
-        <a [routerLink]="auth.user() ? '/dashboard' : '/'" class="flex min-w-0 items-center gap-3 text-xl font-bold text-brand">
+        <a [routerLink]="auth.user() ? '/dashboard' : '/'" class="flex min-w-0 items-center gap-3 text-xl font-bold text-brand dark:text-white">
           <img class="h-12 w-12 shrink-0 object-contain md:h-14 md:w-14" src="/assets/tagmypet-logo.png" alt="TagMyPet logo">
           <span class="tracking-tight">TagMyPet</span>
         </a>
