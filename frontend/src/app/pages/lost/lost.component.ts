@@ -1,6 +1,7 @@
 import { Component, OnInit, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ApiService } from '../../core/services/api.service';
+import { AuthService } from '../../core/services/auth.service';
 import { LostReport, Pet } from '../../core/models/domain';
 
 @Component({
@@ -43,25 +44,77 @@ import { LostReport, Pet } from '../../core/models/domain';
       <section class="grid gap-4 md:grid-cols-2">
         @for (report of reports(); track report._id) {
           <article class="panel">
-            <div class="mb-4 flex aspect-[4/3] w-full items-center justify-center overflow-hidden rounded-md bg-stone-100">
-              <img class="h-full w-full object-contain" [src]="report.pet.foto || 'https://images.unsplash.com/photo-1583511655826-05700d52f4d9?auto=format&fit=crop&w=900&q=80'" [alt]="report.pet.nombre">
-            </div>
+            <button type="button" class="mb-4 block w-full overflow-hidden rounded-md bg-stone-100 text-left" (click)="openGallery(report.pet, 0)">
+              <span class="flex aspect-[4/3] w-full items-center justify-center">
+                <img class="h-full w-full object-contain transition duration-300 hover:scale-[1.02]" [src]="mainPhoto(report.pet)" [alt]="report.pet.nombre">
+              </span>
+            </button>
+            @if ((photos(report.pet).length || 0) > 1) {
+              <div class="mb-4 grid grid-cols-5 gap-2">
+                @for (photo of photos(report.pet); track photo; let i = $index) {
+                  <button type="button" class="overflow-hidden rounded-md bg-stone-100 ring-brand/20 transition hover:ring-4" (click)="openGallery(report.pet, i)">
+                    <img class="aspect-square w-full object-contain" [src]="photo" [alt]="report.pet.nombre + ' foto ' + (i + 1)">
+                  </button>
+                }
+              </div>
+            } @else {
+              <button type="button" class="mb-4 text-sm font-semibold text-brand" (click)="openGallery(report.pet, 0)">Ver foto completa</button>
+            }
             <h2 class="text-xl font-semibold">{{ report.pet.nombre }}</h2>
             <p class="text-sm text-slate-600">{{ report.ciudad }} · {{ report.zona || 'Zona no especificada' }}</p>
             <p class="mt-2 text-sm">{{ report.descripcion }}</p>
             <p class="mt-3 font-semibold text-brand">{{ report.contactoPublico }}</p>
-            <button class="btn-outline mt-3" (click)="share(report)">Compartir</button>
+            <div class="mt-3 flex flex-wrap gap-2">
+              <button class="btn-outline" (click)="share(report)">Compartir</button>
+              @if (canMarkFound(report)) {
+                <button class="btn" (click)="markFound(report)">Marcar encontrada</button>
+              }
+            </div>
           </article>
         }
       </section>
     </div>
+
+    @if (gallery(); as view) {
+      <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4 backdrop-blur-sm" (click)="closeGallery()">
+        <section class="relative w-full max-w-5xl rounded-lg bg-white p-4 shadow-2xl" (click)="$event.stopPropagation()">
+          <div class="mb-3 flex items-center justify-between gap-3">
+            <div>
+              <p class="text-xs font-bold uppercase tracking-widest text-slate-500">Galería</p>
+              <h2 class="text-xl font-bold">{{ view.name }}</h2>
+            </div>
+            <button type="button" class="btn-outline" (click)="closeGallery()">Cerrar</button>
+          </div>
+          <div class="flex min-h-[320px] items-center justify-center rounded-lg bg-stone-100 md:min-h-[560px]">
+            <img class="max-h-[72vh] w-full object-contain" [src]="view.photos[view.index]" [alt]="view.name">
+          </div>
+          @if (view.photos.length > 1) {
+            <div class="mt-4 flex items-center justify-between gap-3">
+              <button type="button" class="btn-outline" (click)="previousPhoto()">Anterior</button>
+              <p class="text-sm font-semibold text-slate-600">{{ view.index + 1 }} / {{ view.photos.length }}</p>
+              <button type="button" class="btn-outline" (click)="nextPhoto()">Siguiente</button>
+            </div>
+            <div class="mt-3 grid grid-cols-5 gap-2 sm:grid-cols-6 md:grid-cols-8">
+              @for (photo of view.photos; track photo; let i = $index) {
+                <button type="button" class="overflow-hidden rounded-md bg-stone-100 ring-offset-2 transition" [class.ring-4]="i === view.index" [class.ring-brand]="i === view.index" (click)="setPhoto(i)">
+                  <img class="aspect-square w-full object-contain" [src]="photo" [alt]="view.name + ' miniatura ' + (i + 1)">
+                </button>
+              }
+            </div>
+          }
+        </section>
+      </div>
+    }
   `
 })
 export class LostComponent implements OnInit {
   private fb = inject(FormBuilder);
   private api = inject(ApiService);
+  auth = inject(AuthService);
   reports = signal<LostReport[]>([]);
   pets = signal<Pet[]>([]);
+  ownedPetIds = signal<Set<string>>(new Set());
+  gallery = signal<{ name: string; photos: string[]; index: number } | null>(null);
   cities = ['La Paz', 'Cochabamba', 'Santa Cruz', 'Oruro', 'Potosí', 'Chuquisaca', 'Tarija', 'Beni', 'Pando'];
   filter = this.fb.nonNullable.group({ texto: [''], ciudad: [''], especie: [''], raza: [''] });
   form = this.fb.nonNullable.group({
@@ -72,8 +125,38 @@ export class LostComponent implements OnInit {
     descripcion: ['']
   });
 
-  ngOnInit() { this.load(); this.api.pets().subscribe({ next: (pets) => { this.pets.set(pets); if (pets[0]) this.form.patchValue({ pet: pets[0]._id }); }, error: () => undefined }); }
+  ngOnInit() { this.load(); this.api.pets().subscribe({ next: (pets) => { this.pets.set(pets); this.ownedPetIds.set(new Set(pets.map((pet) => pet._id))); if (pets[0]) this.form.patchValue({ pet: pets[0]._id }); }, error: () => undefined }); }
   load() { this.api.lostReports(this.filter.getRawValue()).subscribe((reports) => this.reports.set(reports)); }
   create() { this.api.createLost(this.form.getRawValue()).subscribe(() => this.load()); }
   share(report: LostReport) { navigator.share?.({ title: `Mascota perdida: ${report.pet.nombre}`, text: report.descripcion || '', url: location.href }); }
+  canMarkFound(report: LostReport) { return this.auth.user()?.rol === 'ADMIN' || this.ownedPetIds().has(report.pet._id); }
+  markFound(report: LostReport) {
+    if (!confirm(`¿Marcar a ${report.pet.nombre} como encontrada? El reporte dejará de aparecer en perdidos.`)) return;
+    this.api.markFound(report._id).subscribe(() => this.load());
+  }
+  photos(pet: Pet) {
+    const images = pet.fotos?.length ? pet.fotos : pet.foto ? [pet.foto] : [];
+    return images.length ? images : ['https://images.unsplash.com/photo-1583511655826-05700d52f4d9?auto=format&fit=crop&w=900&q=80'];
+  }
+  mainPhoto(pet: Pet) { return this.photos(pet)[0]; }
+  openGallery(pet: Pet, index: number) {
+    const photos = this.photos(pet);
+    this.gallery.set({ name: pet.nombre, photos, index: Math.min(index, photos.length - 1) });
+  }
+  closeGallery() { this.gallery.set(null); }
+  setPhoto(index: number) {
+    const view = this.gallery();
+    if (!view) return;
+    this.gallery.set({ ...view, index });
+  }
+  previousPhoto() {
+    const view = this.gallery();
+    if (!view) return;
+    this.gallery.set({ ...view, index: (view.index - 1 + view.photos.length) % view.photos.length });
+  }
+  nextPhoto() {
+    const view = this.gallery();
+    if (!view) return;
+    this.gallery.set({ ...view, index: (view.index + 1) % view.photos.length });
+  }
 }

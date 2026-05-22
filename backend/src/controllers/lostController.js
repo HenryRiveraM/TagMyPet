@@ -6,7 +6,7 @@ import { asyncHandler } from '../utils/asyncHandler.js';
 export const publicLostReports = asyncHandler(async (req, res) => {
   const query = { estado: 'LOST' };
   if (req.query.ciudad) query.ciudad = new RegExp(req.query.ciudad, 'i');
-  let reports = await LostReport.find(query).populate('pet', 'nombre especie raza color foto codigoNFC').sort('-createdAt');
+  let reports = await LostReport.find(query).populate('pet', 'nombre especie raza color foto fotos codigoNFC').sort('-createdAt');
 
   if (req.query.especie) {
     const especie = String(req.query.especie).toLowerCase();

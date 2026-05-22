@@ -52,9 +52,9 @@ import { Pet } from '../../core/models/domain';
       <section class="grid gap-4 md:grid-cols-2">
         @for (pet of pets(); track pet._id) {
           <article class="panel overflow-hidden p-0">
-            <div class="flex aspect-[4/3] w-full items-center justify-center bg-stone-100">
-              <img class="h-full w-full object-contain" [src]="mainPhoto(pet)" [alt]="pet.nombre">
-            </div>
+            <button type="button" class="flex aspect-[4/3] w-full items-center justify-center bg-stone-100" (click)="openGallery(pet, 0)">
+              <img class="h-full w-full object-contain transition duration-300 hover:scale-[1.02]" [src]="mainPhoto(pet)" [alt]="pet.nombre">
+            </button>
             <div class="p-5">
             <div class="flex items-start justify-between gap-3">
               <div>
@@ -73,10 +73,15 @@ import { Pet } from '../../core/models/domain';
             </div>
             @if ((pet.fotos?.length || 0) > 1) {
               <div class="mt-4 grid grid-cols-5 gap-2">
-                @for (photo of pet.fotos?.slice(0, 5); track photo) {
-                  <img class="aspect-square rounded-md bg-stone-100 object-contain" [src]="photo" [alt]="pet.nombre">
+                @for (photo of pet.fotos?.slice(0, 5); track photo; let i = $index) {
+                  <button type="button" class="overflow-hidden rounded-md bg-stone-100 ring-brand/20 transition hover:ring-4" (click)="openGallery(pet, i)">
+                    <img class="aspect-square w-full object-contain" [src]="photo" [alt]="pet.nombre + ' foto ' + (i + 1)">
+                  </button>
                 }
               </div>
+              <button type="button" class="mt-3 text-sm font-semibold text-brand" (click)="openGallery(pet, 0)">Ver todas las fotos</button>
+            } @else {
+              <button type="button" class="mt-3 text-sm font-semibold text-brand" (click)="openGallery(pet, 0)">Ver foto completa</button>
             }
             <div class="mt-4 flex gap-2">
               <button class="btn-outline" (click)="edit(pet)">Editar</button>
@@ -87,6 +92,37 @@ import { Pet } from '../../core/models/domain';
         }
       </section>
     </div>
+
+    @if (gallery(); as view) {
+      <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4 backdrop-blur-sm" (click)="closeGallery()">
+        <section class="relative w-full max-w-5xl rounded-lg bg-white p-4 shadow-2xl" (click)="$event.stopPropagation()">
+          <div class="mb-3 flex items-center justify-between gap-3">
+            <div>
+              <p class="text-xs font-bold uppercase tracking-widest text-slate-500">Galería</p>
+              <h2 class="text-xl font-bold">{{ view.name }}</h2>
+            </div>
+            <button type="button" class="btn-outline" (click)="closeGallery()">Cerrar</button>
+          </div>
+          <div class="flex min-h-[320px] items-center justify-center rounded-lg bg-stone-100 md:min-h-[560px]">
+            <img class="max-h-[72vh] w-full object-contain" [src]="view.photos[view.index]" [alt]="view.name">
+          </div>
+          @if (view.photos.length > 1) {
+            <div class="mt-4 flex items-center justify-between gap-3">
+              <button type="button" class="btn-outline" (click)="previousPhoto()">Anterior</button>
+              <p class="text-sm font-semibold text-slate-600">{{ view.index + 1 }} / {{ view.photos.length }}</p>
+              <button type="button" class="btn-outline" (click)="nextPhoto()">Siguiente</button>
+            </div>
+            <div class="mt-3 grid grid-cols-5 gap-2 sm:grid-cols-6 md:grid-cols-8">
+              @for (photo of view.photos; track photo; let i = $index) {
+                <button type="button" class="overflow-hidden rounded-md bg-stone-100 ring-offset-2 transition" [class.ring-4]="i === view.index" [class.ring-brand]="i === view.index" (click)="setPhoto(i)">
+                  <img class="aspect-square w-full object-contain" [src]="photo" [alt]="view.name + ' miniatura ' + (i + 1)">
+                </button>
+              }
+            </div>
+          }
+        </section>
+      </div>
+    }
   `
 })
 export class PetsComponent implements OnInit {
@@ -98,6 +134,7 @@ export class PetsComponent implements OnInit {
   isError = signal(false);
   saving = signal(false);
   editingId = signal<string | null>(null);
+  gallery = signal<{ name: string; photos: string[]; index: number } | null>(null);
   files: File[] = [];
   form = this.fb.nonNullable.group({
     nombre: ['', Validators.required],
@@ -203,7 +240,37 @@ export class PetsComponent implements OnInit {
   }
 
   mainPhoto(pet: Pet) {
-    return pet.fotos?.[0] || pet.foto || 'https://images.unsplash.com/photo-1548199973-03cce0bbc87b?auto=format&fit=crop&w=900&q=80';
+    return this.photos(pet)[0];
+  }
+
+  photos(pet: Pet) {
+    const images = pet.fotos?.length ? pet.fotos : pet.foto ? [pet.foto] : [];
+    return images.length ? images : ['https://images.unsplash.com/photo-1548199973-03cce0bbc87b?auto=format&fit=crop&w=900&q=80'];
+  }
+
+  openGallery(pet: Pet, index: number) {
+    const photos = this.photos(pet);
+    this.gallery.set({ name: pet.nombre, photos, index: Math.min(index, photos.length - 1) });
+  }
+
+  closeGallery() { this.gallery.set(null); }
+
+  setPhoto(index: number) {
+    const view = this.gallery();
+    if (!view) return;
+    this.gallery.set({ ...view, index });
+  }
+
+  previousPhoto() {
+    const view = this.gallery();
+    if (!view) return;
+    this.gallery.set({ ...view, index: (view.index - 1 + view.photos.length) % view.photos.length });
+  }
+
+  nextPhoto() {
+    const view = this.gallery();
+    if (!view) return;
+    this.gallery.set({ ...view, index: (view.index + 1) % view.photos.length });
   }
 
   copyText(value: string, message: string) {

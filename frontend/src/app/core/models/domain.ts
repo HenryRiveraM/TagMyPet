@@ -58,6 +58,7 @@ export interface LostReport {
   zona?: string;
   descripcion?: string;
   contactoPublico: string;
+  estado?: 'LOST' | 'FOUND';
 }
 
 export interface Clinic {
