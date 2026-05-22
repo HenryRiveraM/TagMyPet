@@ -2,6 +2,7 @@ import { Component, OnInit, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ApiService } from '../../core/services/api.service';
 import { Pet } from '../../core/models/domain';
+import { ToastService } from '../../core/services/toast.service';
 
 @Component({
   standalone: true,
@@ -81,6 +82,7 @@ import { Pet } from '../../core/models/domain';
 export class TagsComponent implements OnInit {
   private fb = inject(FormBuilder);
   private api = inject(ApiService);
+  private toast = inject(ToastService);
   pets = signal<Pet[]>([]);
   message = signal('');
   form = this.fb.nonNullable.group({ pet: ['', Validators.required] });
@@ -107,11 +109,13 @@ export class TagsComponent implements OnInit {
   copyCode(pet: Pet) {
     navigator.clipboard?.writeText(pet.codigoNFC);
     this.message.set('Código NFC copiado. Úsalo para identificar la mascota dentro de TagMyPet.');
+    this.toast.success('Código NFC copiado');
   }
 
   copyLink(pet: Pet) {
     const url = this.publicProfileUrl(pet);
     navigator.clipboard?.writeText(url);
     this.message.set('Link copiado. Ahora pégalo en NFC Tools como URL del collar.');
+    this.toast.success('Link NFC copiado');
   }
 }

@@ -3,6 +3,7 @@ import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { AuthService } from '../../core/services/auth.service';
 import { ApiService } from '../../core/services/api.service';
 import { Clinic, Pet, PetAccessRequest } from '../../core/models/domain';
+import { ToastService } from '../../core/services/toast.service';
 
 @Component({
   standalone: true,
@@ -256,6 +257,7 @@ import { Clinic, Pet, PetAccessRequest } from '../../core/models/domain';
 export class ClinicsComponent implements OnInit {
   private fb = inject(FormBuilder);
   private api = inject(ApiService);
+  private toast = inject(ToastService);
   auth = inject(AuthService);
   clinics = signal<Clinic[]>([]);
   requests = signal<PetAccessRequest[]>([]);
@@ -288,13 +290,19 @@ export class ClinicsComponent implements OnInit {
         this.isLoading.set(false);
       },
       error: (err) => {
-        this.error.set(err.error?.message || 'No se pudieron cargar las clínicas');
+        const message = err.error?.message || 'No se pudieron cargar las clínicas';
+        this.error.set(message);
+        this.toast.error(message);
         this.isLoading.set(false);
       }
     });
     this.api.accessRequests().subscribe({
       next: (requests) => this.requests.set(requests),
-      error: (err) => this.error.set(err.error?.message || 'No se pudieron cargar las solicitudes')
+      error: (err) => {
+        const message = err.error?.message || 'No se pudieron cargar las solicitudes';
+        this.error.set(message);
+        this.toast.error(message);
+      }
     });
   }
   activeClinics() { return this.clinics().filter((clinic) => clinic.estado === 'ACTIVE'); }
@@ -318,12 +326,16 @@ export class ClinicsComponent implements OnInit {
     this.api.createClinic(this.clinicForm.getRawValue()).subscribe({
       next: () => {
         this.clinicForm.reset();
-        this.message.set(this.auth.user()?.rol === 'ADMIN' ? 'Clínica creada' : 'Solicitud enviada al admin');
+        const message = this.auth.user()?.rol === 'ADMIN' ? 'Clínica creada' : 'Solicitud enviada al admin';
+        this.message.set(message);
+        this.toast.success(message);
         this.isSubmitting.set(false);
         this.load();
       },
       error: (err) => {
-        this.error.set(err.error?.message || 'No se pudo crear la clínica');
+        const message = err.error?.message || 'No se pudo crear la clínica';
+        this.error.set(message);
+        this.toast.error(message);
         this.isSubmitting.set(false);
       }
     });
@@ -335,20 +347,33 @@ export class ClinicsComponent implements OnInit {
     this.api.requestPetAccess(this.accessForm.getRawValue()).subscribe({
       next: () => {
         this.message.set('Solicitud enviada al dueño');
+        this.toast.success('Solicitud enviada al dueño');
         this.isRequesting.set(false);
         this.load();
       },
       error: (err) => {
-        this.error.set(err.error?.message || 'No se pudo enviar la solicitud');
+        const message = err.error?.message || 'No se pudo enviar la solicitud';
+        this.error.set(message);
+        this.toast.error(message);
         this.isRequesting.set(false);
       }
     });
   }
-  decide(id: string, status: 'APPROVED' | 'REJECTED' | 'REVOKED') { this.api.decidePetAccess(id, status).subscribe(() => this.load()); }
+  decide(id: string, status: 'APPROVED' | 'REJECTED' | 'REVOKED') {
+    this.api.decidePetAccess(id, status).subscribe({
+      next: () => { this.toast.success(status === 'APPROVED' ? 'Acceso médico aprobado' : 'Acceso médico rechazado'); this.load(); },
+      error: (err) => this.toast.error(err.error?.message || 'No se pudo actualizar la solicitud')
+    });
+  }
   updateClinic(id: string, estado: 'PENDING' | 'ACTIVE' | 'SUSPENDED') {
-    this.api.updateClinicStatus(id, estado).subscribe(() => {
-      this.message.set(estado === 'ACTIVE' ? 'Clínica aprobada como oficial' : 'Clínica suspendida');
-      this.load();
+    this.api.updateClinicStatus(id, estado).subscribe({
+      next: () => {
+        const message = estado === 'ACTIVE' ? 'Clínica aprobada como oficial' : 'Clínica suspendida';
+        this.message.set(message);
+        this.toast.success(message);
+        this.load();
+      },
+      error: (err) => this.toast.error(err.error?.message || 'No se pudo actualizar la clínica')
     });
   }
   statusClass(status: string) {

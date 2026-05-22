@@ -1,6 +1,7 @@
 import { Component } from '@angular/core';
 import { RouterLink, RouterOutlet } from '@angular/router';
 import { AuthService } from './core/services/auth.service';
+import { ToastService } from './core/services/toast.service';
 
 @Component({
   selector: 'app-root',
@@ -33,10 +34,34 @@ import { AuthService } from './core/services/auth.service';
     <main class="mx-auto max-w-7xl px-4 py-8 md:py-10">
       <router-outlet />
     </main>
+    <footer class="mx-auto flex max-w-7xl flex-col gap-2 px-4 pb-8 text-sm text-slate-500 md:flex-row md:items-center md:justify-between">
+      <span>TagMyPet · Cuidado digital para mascotas</span>
+      <div class="flex gap-4">
+        <a routerLink="/privacidad" class="font-semibold hover:text-brand">Privacidad</a>
+        <a routerLink="/terminos" class="font-semibold hover:text-brand">Términos</a>
+      </div>
+    </footer>
+    <div class="fixed bottom-4 right-4 z-[70] flex w-[min(92vw,360px)] flex-col gap-3">
+      @for (item of toast.toasts(); track item.id) {
+        <button type="button" class="rounded-lg border p-4 text-left text-sm font-semibold shadow-2xl backdrop-blur transition hover:-translate-y-0.5"
+          [class.border-emerald-200]="item.type === 'success'"
+          [class.bg-emerald-50]="item.type === 'success'"
+          [class.text-emerald-900]="item.type === 'success'"
+          [class.border-red-200]="item.type === 'error'"
+          [class.bg-red-50]="item.type === 'error'"
+          [class.text-red-900]="item.type === 'error'"
+          [class.border-stone-200]="item.type === 'info'"
+          [class.bg-white]="item.type === 'info'"
+          [class.text-slate-900]="item.type === 'info'"
+          (click)="toast.dismiss(item.id)">
+          {{ item.message }}
+        </button>
+      }
+    </div>
   `
 })
 export class AppComponent {
-  constructor(public auth: AuthService) {}
+  constructor(public auth: AuthService, public toast: ToastService) {}
   can(roles: string[]) {
     const role = this.auth.user()?.rol;
     return !!role && roles.includes(role);

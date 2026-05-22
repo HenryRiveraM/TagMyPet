@@ -3,6 +3,7 @@ import { Component, OnInit, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ApiService } from '../../core/services/api.service';
 import { Pet } from '../../core/models/domain';
+import { ToastService } from '../../core/services/toast.service';
 
 @Component({
   standalone: true,
@@ -40,6 +41,9 @@ import { Pet } from '../../core/models/domain';
         }
       </section>
       <section class="space-y-4">
+        @if (loading()) {
+          <article class="panel min-h-40 animate-pulse"><div class="h-5 w-32 rounded bg-stone-100"></div><div class="mt-5 h-4 w-2/3 rounded bg-stone-100"></div></article>
+        }
         <div class="panel">
           <div class="flex flex-wrap gap-2">
             @for (type of types; track type.value) {
@@ -74,8 +78,10 @@ import { Pet } from '../../core/models/domain';
 export class MedicalComponent implements OnInit {
   private fb = inject(FormBuilder);
   private api = inject(ApiService);
+  private toast = inject(ToastService);
   pets = signal<Pet[]>([]);
   records = signal<any[]>([]);
+  loading = signal(true);
   activeType = signal('VACUNA');
   types = [
     { value: 'VACUNA', label: 'Vacunas' },
@@ -106,13 +112,16 @@ export class MedicalComponent implements OnInit {
     const petId = this.form.controls.pet.value;
     if (!petId) {
       this.records.set([]);
+      this.loading.set(false);
       return;
     }
     this.api.medicalRecords(petId).subscribe({
-      next: (records) => this.records.set(records as any[]),
+      next: (records) => { this.records.set(records as any[]); this.loading.set(false); },
       error: (err) => {
+        this.loading.set(false);
         this.isError.set(true);
         this.message.set(err.error?.message || 'No se pudo cargar el historial');
+        this.toast.error(err.error?.message || 'No se pudo cargar el historial');
         this.records.set([]);
       }
     });
@@ -125,12 +134,14 @@ export class MedicalComponent implements OnInit {
     this.api.createMedicalRecord(this.form.getRawValue()).subscribe({
       next: () => {
         this.message.set('Registro médico agregado');
+        this.toast.success('Registro médico agregado');
         this.form.patchValue({ titulo: '', descripcion: '' });
         this.loadRecords();
       },
       error: (err) => {
         this.isError.set(true);
         this.message.set(err.error?.message || 'No se pudo agregar el registro');
+        this.toast.error(err.error?.message || 'No se pudo agregar el registro');
       }
     });
   }

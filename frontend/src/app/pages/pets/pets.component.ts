@@ -3,6 +3,7 @@ import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { ApiService } from '../../core/services/api.service';
 import { Pet } from '../../core/models/domain';
+import { ToastService } from '../../core/services/toast.service';
 
 @Component({
   standalone: true,
@@ -50,7 +51,12 @@ import { Pet } from '../../core/models/domain';
         </form>
       </section>
       <section class="grid gap-4 md:grid-cols-2">
-        @if (!pets().length) {
+        @if (loading()) {
+          @for (item of [1,2,3,4]; track item) {
+            <article class="panel min-h-72 animate-pulse"><div class="h-44 rounded-md bg-stone-100"></div><div class="mt-5 h-5 w-1/2 rounded bg-stone-100"></div><div class="mt-3 h-4 w-2/3 rounded bg-stone-100"></div></article>
+          }
+        }
+        @if (!pets().length && !loading()) {
           <article class="panel text-center md:col-span-2">
             <p class="eyebrow">Sin mascotas</p>
             <h2 class="mt-2 text-2xl font-bold">Registra tu primera mascota</h2>
@@ -135,11 +141,13 @@ import { Pet } from '../../core/models/domain';
 export class PetsComponent implements OnInit {
   private fb = inject(FormBuilder);
   private api = inject(ApiService);
+  private toast = inject(ToastService);
   @ViewChild('fileInput') fileInput?: ElementRef<HTMLInputElement>;
   pets = signal<Pet[]>([]);
   message = signal('');
   isError = signal(false);
   saving = signal(false);
+  loading = signal(true);
   editingId = signal<string | null>(null);
   gallery = signal<{ name: string; photos: string[]; index: number } | null>(null);
   files: File[] = [];
@@ -156,7 +164,10 @@ export class PetsComponent implements OnInit {
 
   ngOnInit() { this.load(); }
 
-  load() { this.api.pets().subscribe((pets) => this.pets.set(pets)); }
+  load() {
+    this.loading.set(true);
+    this.api.pets().subscribe({ next: (pets) => { this.pets.set(pets); this.loading.set(false); }, error: () => { this.loading.set(false); this.toast.error('No se pudieron cargar las mascotas'); } });
+  }
 
   pickFiles(event: Event) {
     const input = event.target as HTMLInputElement;
@@ -197,12 +208,14 @@ export class PetsComponent implements OnInit {
         this.files = [];
         if (this.fileInput) this.fileInput.nativeElement.value = '';
         this.message.set(wasEditing ? 'Mascota actualizada' : 'Mascota creada');
+        this.toast.success(wasEditing ? 'Mascota actualizada' : 'Mascota creada');
         this.saving.set(false);
         this.load();
       },
       error: (err) => {
         this.isError.set(true);
         this.message.set(err.error?.message || 'No se pudo crear');
+        this.toast.error(err.error?.message || 'No se pudo guardar la mascota');
         this.saving.set(false);
       }
     });
@@ -237,8 +250,8 @@ export class PetsComponent implements OnInit {
   remove(pet: Pet) {
     if (!confirm(`¿Eliminar a ${pet.nombre}? Esta acción no se puede deshacer.`)) return;
     this.api.deletePet(pet._id).subscribe({
-      next: () => { this.message.set('Mascota eliminada'); this.load(); },
-      error: (err) => { this.isError.set(true); this.message.set(err.error?.message || 'No se pudo eliminar'); }
+      next: () => { this.message.set('Mascota eliminada'); this.toast.success('Mascota eliminada'); this.load(); },
+      error: (err) => { this.isError.set(true); this.message.set(err.error?.message || 'No se pudo eliminar'); this.toast.error(err.error?.message || 'No se pudo eliminar'); }
     });
   }
 
@@ -284,5 +297,6 @@ export class PetsComponent implements OnInit {
     navigator.clipboard?.writeText(value);
     this.isError.set(false);
     this.message.set(message);
+    this.toast.success(message);
   }
 }

@@ -1,10 +1,11 @@
 import { Component, OnInit, signal } from '@angular/core';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, RouterLink } from '@angular/router';
 import { ApiService } from '../../core/services/api.service';
 import { Pet, User } from '../../core/models/domain';
 
 @Component({
   standalone: true,
+  imports: [RouterLink],
   template: `
     @if (pet(); as profile) {
       <section class="mx-auto max-w-4xl overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm">
@@ -99,7 +100,15 @@ import { Pet, User } from '../../core/models/domain';
         </div>
       }
     } @else {
-      <p class="panel">Perfil no encontrado.</p>
+      <section class="mx-auto max-w-2xl rounded-lg border border-stone-200 bg-white p-8 text-center shadow-sm">
+        <p class="eyebrow">NFC</p>
+        <h1 class="mt-3 text-3xl font-bold tracking-tight">Perfil no encontrado</h1>
+        <p class="mt-3 text-slate-600">Este collar no está vinculado a una mascota activa o el código NFC no existe.</p>
+        <div class="mt-6 flex flex-col justify-center gap-3 sm:flex-row">
+          <a routerLink="/" class="btn">Ir al inicio</a>
+          <a routerLink="/perdidos" class="btn-outline">Ver mascotas perdidas</a>
+        </div>
+      </section>
     }
   `
 })

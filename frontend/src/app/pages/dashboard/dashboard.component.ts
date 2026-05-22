@@ -4,6 +4,7 @@ import { RouterLink } from '@angular/router';
 import { AuthService } from '../../core/services/auth.service';
 import { ApiService } from '../../core/services/api.service';
 import { Clinic, Pet, Reminder } from '../../core/models/domain';
+import { ToastService } from '../../core/services/toast.service';
 
 @Component({
   standalone: true,
@@ -32,6 +33,11 @@ import { Clinic, Pet, Reminder } from '../../core/models/domain';
       }
     </section>
     <section class="grid gap-4 md:grid-cols-3">
+      @if (loading()) {
+        @for (item of [1,2,3]; track item) {
+          <article class="panel min-h-40 animate-pulse"><div class="h-5 w-24 rounded bg-stone-100"></div><div class="mt-5 h-5 w-1/2 rounded bg-stone-100"></div><div class="mt-3 h-4 w-2/3 rounded bg-stone-100"></div></article>
+        }
+      }
       @for (item of visibleCards(); track item.href) {
         <a [routerLink]="item.href" class="panel min-h-40 transition hover:-translate-y-0.5 hover:border-brand hover:shadow-md">
           <span class="badge">{{ item.tag }}</span>
@@ -128,11 +134,12 @@ export class DashboardComponent implements OnInit {
   pets = signal<Pet[]>([]);
   reminders = signal<Reminder[]>([]);
   clinics = signal<Clinic[]>([]);
+  loading = signal(true);
   activeClinics = computed(() => this.clinics().filter((clinic) => clinic.estado === 'ACTIVE'));
-  constructor(public auth: AuthService, private api: ApiService) {}
+  constructor(public auth: AuthService, private api: ApiService, private toast: ToastService) {}
 
   ngOnInit() {
-    this.api.pets().subscribe({ next: (pets) => this.pets.set(pets), error: () => undefined });
+    this.api.pets().subscribe({ next: (pets) => { this.pets.set(pets); this.loading.set(false); }, error: () => { this.loading.set(false); this.toast.error('No se pudo cargar el dashboard'); } });
     this.api.clinics().subscribe({ next: (clinics) => this.clinics.set(clinics), error: () => undefined });
     if (this.auth.user()?.rol !== 'VETERINARIO') {
       this.api.reminders().subscribe({ next: (reminders) => this.reminders.set(reminders), error: () => undefined });
@@ -189,10 +196,10 @@ export class DashboardComponent implements OnInit {
   }
 
   resendVerification() {
-    this.auth.resendVerification().subscribe((res) => this.message = res.message);
+    this.auth.resendVerification().subscribe((res) => { this.message = res.message; this.toast.success(res.message); });
   }
 
   sendReminderNotifications() {
-    this.api.sendReminderNotifications().subscribe((res) => this.message = `Recordatorios enviados: ${res.sent}`);
+    this.api.sendReminderNotifications().subscribe((res) => { this.message = `Recordatorios enviados: ${res.sent}`; this.toast.success(this.message); });
   }
 }

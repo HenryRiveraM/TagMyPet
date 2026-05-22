@@ -1,6 +1,7 @@
 import { Component, OnInit, signal } from '@angular/core';
 import { ApiService } from '../../core/services/api.service';
 import { Clinic, User } from '../../core/models/domain';
+import { ToastService } from '../../core/services/toast.service';
 
 @Component({
   standalone: true,
@@ -27,7 +28,9 @@ import { Clinic, User } from '../../core/models/domain';
           </div>
           <span class="badge">{{ pendingClinics().length }} pendientes</span>
         </div>
-        @if (pendingClinics().length) {
+        @if (loading()) {
+          <div class="mt-5 rounded-lg bg-stone-50 p-6 text-sm text-slate-600">Cargando clínicas pendientes...</div>
+        } @else if (pendingClinics().length) {
           <div class="mt-5 space-y-3">
             @for (clinic of pendingClinics(); track clinic._id) {
               <div class="rounded-lg border border-stone-200 bg-stone-50 p-4">
@@ -57,6 +60,9 @@ import { Clinic, User } from '../../core/models/domain';
           </div>
           <span class="badge">{{ users().length }} usuarios</span>
         </div>
+        @if (loading()) {
+          <div class="mt-5 rounded-lg bg-stone-50 p-6 text-sm text-slate-600">Cargando usuarios...</div>
+        } @else {
         <div class="mt-5 max-h-[420px] overflow-auto rounded-lg border border-stone-200">
           <table class="w-full min-w-[720px] text-left text-sm">
             <thead class="bg-stone-50 text-xs uppercase tracking-wide text-slate-500"><tr><th class="px-4 py-3">Usuario</th><th>Email</th><th>Rol</th><th>Estado</th><th></th></tr></thead>
@@ -73,6 +79,7 @@ import { Clinic, User } from '../../core/models/domain';
             </tbody>
           </table>
         </div>
+        }
       </article>
     </section>
     <section class="panel">
@@ -107,7 +114,8 @@ export class AdminComponent implements OnInit {
   stats = signal<Record<string, number>>({});
   users = signal<User[]>([]);
   clinics = signal<Clinic[]>([]);
-  constructor(private api: ApiService) {}
+  loading = signal(true);
+  constructor(private api: ApiService, private toast: ToastService) {}
   ngOnInit() { this.load(); }
   pendingClinics() { return this.clinics().filter((clinic) => clinic.estado === 'PENDING'); }
   statItems() {
@@ -123,16 +131,18 @@ export class AdminComponent implements OnInit {
     ];
   }
   load() {
+    this.loading.set(true);
     this.api.adminStats().subscribe((s) => this.stats.set(s));
     this.api.users().subscribe((u) => this.users.set(u));
-    this.api.clinics().subscribe((clinics) => this.clinics.set(clinics));
+    this.api.clinics().subscribe({ next: (clinics) => { this.clinics.set(clinics); this.loading.set(false); }, error: () => { this.loading.set(false); this.toast.error('No se pudo cargar el panel admin'); } });
   }
   toggle(user: User) {
     const id = user._id || user.id;
     if (!id) return;
-    this.api.updateUserStatus(id, user.estado === 'ACTIVE' ? 'SUSPENDED' : 'ACTIVE').subscribe(() => this.load());
+    const estado = user.estado === 'ACTIVE' ? 'SUSPENDED' : 'ACTIVE';
+    this.api.updateUserStatus(id, estado).subscribe({ next: () => { this.toast.success(estado === 'ACTIVE' ? 'Usuario activado' : 'Usuario suspendido'); this.load(); }, error: (err) => this.toast.error(err.error?.message || 'No se pudo actualizar el usuario') });
   }
   updateClinic(clinic: Clinic, estado: 'ACTIVE' | 'SUSPENDED') {
-    this.api.updateClinicStatus(clinic._id, estado).subscribe(() => this.load());
+    this.api.updateClinicStatus(clinic._id, estado).subscribe({ next: () => { this.toast.success(estado === 'ACTIVE' ? 'Clínica aprobada' : 'Clínica suspendida'); this.load(); }, error: (err) => this.toast.error(err.error?.message || 'No se pudo actualizar la clínica') });
   }
 }

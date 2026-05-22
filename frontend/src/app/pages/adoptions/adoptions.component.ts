@@ -4,6 +4,7 @@ import { RouterLink } from '@angular/router';
 import { ApiService } from '../../core/services/api.service';
 import { AuthService } from '../../core/services/auth.service';
 import { Adoption, Pet } from '../../core/models/domain';
+import { ToastService } from '../../core/services/toast.service';
 
 @Component({
   standalone: true,
@@ -58,7 +59,12 @@ import { Adoption, Pet } from '../../core/models/domain';
         </section>
       }
       <section class="grid gap-4">
-        @if (!adoptions().length) {
+        @if (loading()) {
+          @for (item of [1,2,3]; track item) {
+            <article class="panel min-h-56 animate-pulse"><div class="h-40 rounded-md bg-stone-100"></div><div class="mt-5 h-5 w-1/2 rounded bg-stone-100"></div><div class="mt-3 h-4 w-2/3 rounded bg-stone-100"></div></article>
+          }
+        }
+        @if (!adoptions().length && !loading()) {
           <article class="panel text-center">
             <p class="eyebrow">Sin publicaciones</p>
             <h2 class="mt-2 text-xl font-bold">No hay mascotas en adopción con estos filtros</h2>
@@ -103,9 +109,11 @@ import { Adoption, Pet } from '../../core/models/domain';
 export class AdoptionsComponent implements OnInit {
   private fb = inject(FormBuilder);
   private api = inject(ApiService);
+  private toast = inject(ToastService);
   auth = inject(AuthService);
   adoptions = signal<Adoption[]>([]);
   pets = signal<Pet[]>([]);
+  loading = signal(true);
   filter = this.fb.nonNullable.group({ especie: [''], raza: [''], edad: [''] });
   publishForm = this.fb.nonNullable.group({ pet: ['', Validators.required], ciudad: ['', Validators.required], descripcion: ['', Validators.required] });
   applyForm = this.fb.nonNullable.group({
@@ -117,11 +125,17 @@ export class AdoptionsComponent implements OnInit {
   });
 
   ngOnInit() { this.load(); this.api.pets().subscribe({ next: (pets) => { this.pets.set(pets); if (pets[0]) this.publishForm.patchValue({ pet: pets[0]._id }); }, error: () => undefined }); }
-  load() { this.api.adoptions(this.filter.getRawValue()).subscribe((adoptions) => this.adoptions.set(adoptions)); }
+  load() {
+    this.loading.set(true);
+    this.api.adoptions(this.filter.getRawValue()).subscribe({
+      next: (adoptions) => { this.adoptions.set(adoptions); this.loading.set(false); },
+      error: () => { this.loading.set(false); this.toast.error('No se pudieron cargar las adopciones'); }
+    });
+  }
   canManageAdoptions() { return ['ADMIN', 'OWNER'].includes(this.auth.user()?.rol || ''); }
-  publish() { this.api.createAdoption({ ...this.publishForm.getRawValue(), requisitos: ['Seguimiento veterinario'] }).subscribe(() => this.load()); }
+  publish() { this.api.createAdoption({ ...this.publishForm.getRawValue(), requisitos: ['Seguimiento veterinario'] }).subscribe({ next: () => { this.toast.success('Publicación de adopción creada'); this.load(); }, error: (err) => this.toast.error(err.error?.message || 'No se pudo publicar') }); }
   apply(id: string) {
     const { firmaDigital, ...cuestionario } = this.applyForm.getRawValue();
-    this.api.applyAdoption(id, { firmaDigital, cuestionario }).subscribe(() => this.applyForm.reset());
+    this.api.applyAdoption(id, { firmaDigital, cuestionario }).subscribe({ next: () => { this.toast.success('Solicitud de adopción enviada'); this.applyForm.reset(); }, error: (err) => this.toast.error(err.error?.message || 'No se pudo enviar la solicitud') });
   }
 }

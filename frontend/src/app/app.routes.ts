@@ -9,6 +9,8 @@ export const routes: Routes = [
   { path: 'forgot-password', loadComponent: () => import('./pages/account/forgot-password.component').then((m) => m.ForgotPasswordComponent) },
   { path: 'reset-password', loadComponent: () => import('./pages/account/reset-password.component').then((m) => m.ResetPasswordComponent) },
   { path: 'verify-email', loadComponent: () => import('./pages/account/verify-email.component').then((m) => m.VerifyEmailComponent) },
+  { path: 'privacidad', loadComponent: () => import('./pages/legal/privacy.component').then((m) => m.PrivacyComponent) },
+  { path: 'terminos', loadComponent: () => import('./pages/legal/terms.component').then((m) => m.TermsComponent) },
   { path: 'pet/public/:nfcCode', loadComponent: () => import('./pages/nfc/nfc-profile.component').then((m) => m.NfcProfileComponent) },
   { path: 'perdidos', loadComponent: () => import('./pages/lost/lost.component').then((m) => m.LostComponent) },
   { path: 'adopciones', loadComponent: () => import('./pages/adoptions/adoptions.component').then((m) => m.AdoptionsComponent) },
@@ -19,5 +21,5 @@ export const routes: Routes = [
   { path: 'clinicas', canActivate: [authGuard, roleGuard], data: { roles: ['ADMIN', 'OWNER', 'VETERINARIO'] }, loadComponent: () => import('./pages/clinics/clinics.component').then((m) => m.ClinicsComponent) },
   { path: 'tags-nfc', canActivate: [authGuard, roleGuard], data: { roles: ['ADMIN', 'OWNER'] }, loadComponent: () => import('./pages/tags/tags.component').then((m) => m.TagsComponent) },
   { path: 'admin', canActivate: [authGuard, roleGuard], data: { roles: ['ADMIN'] }, loadComponent: () => import('./pages/admin/admin.component').then((m) => m.AdminComponent) },
-  { path: '**', redirectTo: '' }
+  { path: '**', loadComponent: () => import('./pages/not-found/not-found.component').then((m) => m.NotFoundComponent) }
 ];

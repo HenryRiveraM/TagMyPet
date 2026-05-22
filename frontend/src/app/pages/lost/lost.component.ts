@@ -3,6 +3,7 @@ import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ApiService } from '../../core/services/api.service';
 import { AuthService } from '../../core/services/auth.service';
 import { LostReport, Pet } from '../../core/models/domain';
+import { ToastService } from '../../core/services/toast.service';
 
 @Component({
   standalone: true,
@@ -50,7 +51,12 @@ import { LostReport, Pet } from '../../core/models/domain';
         }
       </section>
       <section class="grid gap-4 md:grid-cols-2">
-        @if (!reports().length) {
+        @if (loading()) {
+          @for (item of [1,2,3,4]; track item) {
+            <article class="panel min-h-80 animate-pulse"><div class="h-48 rounded-md bg-stone-100"></div><div class="mt-5 h-5 w-1/2 rounded bg-stone-100"></div><div class="mt-3 h-4 w-2/3 rounded bg-stone-100"></div></article>
+          }
+        }
+        @if (!reports().length && !loading()) {
           <article class="panel text-center md:col-span-2">
             <p class="eyebrow">Sin reportes</p>
             <h2 class="mt-2 text-xl font-bold">No hay mascotas perdidas con estos filtros</h2>
@@ -125,9 +131,11 @@ import { LostReport, Pet } from '../../core/models/domain';
 export class LostComponent implements OnInit {
   private fb = inject(FormBuilder);
   private api = inject(ApiService);
+  private toast = inject(ToastService);
   auth = inject(AuthService);
   reports = signal<LostReport[]>([]);
   pets = signal<Pet[]>([]);
+  loading = signal(true);
   ownedPetIds = signal<Set<string>>(new Set());
   gallery = signal<{ name: string; photos: string[]; index: number } | null>(null);
   cities = ['La Paz', 'Cochabamba', 'Santa Cruz', 'Oruro', 'Potosí', 'Chuquisaca', 'Tarija', 'Beni', 'Pando'];
@@ -141,14 +149,28 @@ export class LostComponent implements OnInit {
   });
 
   ngOnInit() { this.load(); this.api.pets().subscribe({ next: (pets) => { this.pets.set(pets); this.ownedPetIds.set(new Set(pets.map((pet) => pet._id))); if (pets[0]) this.form.patchValue({ pet: pets[0]._id }); }, error: () => undefined }); }
-  load() { this.api.lostReports(this.filter.getRawValue()).subscribe((reports) => this.reports.set(reports)); }
-  create() { this.api.createLost(this.form.getRawValue()).subscribe(() => this.load()); }
+  load() {
+    this.loading.set(true);
+    this.api.lostReports(this.filter.getRawValue()).subscribe({
+      next: (reports) => { this.reports.set(reports); this.loading.set(false); },
+      error: () => { this.loading.set(false); this.toast.error('No se pudieron cargar los reportes'); }
+    });
+  }
+  create() {
+    this.api.createLost(this.form.getRawValue()).subscribe({
+      next: () => { this.toast.success('Reporte de pérdida publicado'); this.load(); },
+      error: (err) => this.toast.error(err.error?.message || 'No se pudo publicar el reporte')
+    });
+  }
   share(report: LostReport) { navigator.share?.({ title: `Mascota perdida: ${report.pet.nombre}`, text: report.descripcion || '', url: location.href }); }
   canCreateLost() { return ['ADMIN', 'OWNER'].includes(this.auth.user()?.rol || ''); }
   canMarkFound(report: LostReport) { return this.auth.user()?.rol === 'ADMIN' || this.ownedPetIds().has(report.pet._id); }
   markFound(report: LostReport) {
     if (!confirm(`¿Marcar a ${report.pet.nombre} como encontrada? El reporte dejará de aparecer en perdidos.`)) return;
-    this.api.markFound(report._id).subscribe(() => this.load());
+    this.api.markFound(report._id).subscribe({
+      next: () => { this.toast.success(`${report.pet.nombre} fue marcada como encontrada`); this.load(); },
+      error: (err) => this.toast.error(err.error?.message || 'No se pudo marcar como encontrada')
+    });
   }
   photos(pet: Pet) {
     const images = pet.fotos?.length ? pet.fotos : pet.foto ? [pet.foto] : [];

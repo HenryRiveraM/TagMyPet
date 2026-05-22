@@ -3,6 +3,7 @@ import { DatePipe } from '@angular/common';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ApiService } from '../../core/services/api.service';
 import { Pet, Reminder } from '../../core/models/domain';
+import { ToastService } from '../../core/services/toast.service';
 
 @Component({
   standalone: true,
@@ -29,12 +30,22 @@ import { Pet, Reminder } from '../../core/models/domain';
         }
       </section>
       <section class="space-y-4">
+        @if (loading()) {
+          <div class="grid gap-3 md:grid-cols-3">
+            @for (item of [1,2,3]; track item) {
+              <article class="panel min-h-28 animate-pulse"><div class="h-4 w-20 rounded bg-stone-100"></div><div class="mt-4 h-8 w-12 rounded bg-stone-100"></div></article>
+            }
+          </div>
+          @for (item of [1,2,3]; track item) {
+            <article class="panel min-h-32 animate-pulse"><div class="h-5 w-24 rounded bg-stone-100"></div><div class="mt-4 h-5 w-1/2 rounded bg-stone-100"></div><div class="mt-3 h-4 w-2/3 rounded bg-stone-100"></div></article>
+          }
+        }
         <div class="grid gap-3 md:grid-cols-3">
           <article class="panel"><p class="text-sm text-slate-500">Vencidos</p><p class="mt-2 text-3xl font-bold text-red-600">{{ overdue().length }}</p></article>
           <article class="panel"><p class="text-sm text-slate-500">Próximos</p><p class="mt-2 text-3xl font-bold text-brand">{{ upcoming().length }}</p></article>
           <article class="panel"><p class="text-sm text-slate-500">Completados</p><p class="mt-2 text-3xl font-bold text-slate-500">{{ completed().length }}</p></article>
         </div>
-        @if (!reminders().length) {
+        @if (!reminders().length && !loading()) {
           <article class="panel text-center">
             <p class="eyebrow">Sin alertas</p>
             <h2 class="mt-2 text-xl font-bold">Crea tu primer recordatorio</h2>
@@ -61,8 +72,10 @@ import { Pet, Reminder } from '../../core/models/domain';
 export class RemindersComponent implements OnInit {
   private fb = inject(FormBuilder);
   private api = inject(ApiService);
+  private toast = inject(ToastService);
   pets = signal<Pet[]>([]);
   reminders = signal<Reminder[]>([]);
+  loading = signal(true);
   form = this.fb.nonNullable.group({
     pet: ['', Validators.required],
     tipo: ['VACUNA', Validators.required],
@@ -71,9 +84,25 @@ export class RemindersComponent implements OnInit {
   });
 
   ngOnInit() { this.api.pets().subscribe((pets) => { this.pets.set(pets); if (pets[0]) this.form.patchValue({ pet: pets[0]._id }); }); this.load(); }
-  load() { this.api.reminders().subscribe((reminders) => this.reminders.set(reminders)); }
-  create() { this.api.createReminder(this.form.getRawValue()).subscribe(() => this.load()); }
-  toggle(id: string) { this.api.toggleReminder(id).subscribe(() => this.load()); }
+  load() {
+    this.loading.set(true);
+    this.api.reminders().subscribe({
+      next: (reminders) => { this.reminders.set(reminders); this.loading.set(false); },
+      error: () => { this.loading.set(false); this.toast.error('No se pudieron cargar los recordatorios'); }
+    });
+  }
+  create() {
+    this.api.createReminder(this.form.getRawValue()).subscribe({
+      next: () => { this.toast.success('Recordatorio creado'); this.load(); },
+      error: (err) => this.toast.error(err.error?.message || 'No se pudo crear el recordatorio')
+    });
+  }
+  toggle(id: string) {
+    this.api.toggleReminder(id).subscribe({
+      next: () => { this.toast.success('Estado del recordatorio actualizado'); this.load(); },
+      error: (err) => this.toast.error(err.error?.message || 'No se pudo actualizar el recordatorio')
+    });
+  }
   status(reminder: Reminder) {
     if (reminder.completado) return 'Completado';
     const today = new Date().setHours(0, 0, 0, 0);
