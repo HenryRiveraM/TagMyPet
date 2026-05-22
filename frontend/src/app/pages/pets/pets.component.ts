@@ -50,6 +50,13 @@ import { Pet } from '../../core/models/domain';
         </form>
       </section>
       <section class="grid gap-4 md:grid-cols-2">
+        @if (!pets().length) {
+          <article class="panel text-center md:col-span-2">
+            <p class="eyebrow">Sin mascotas</p>
+            <h2 class="mt-2 text-2xl font-bold">Registra tu primera mascota</h2>
+            <p class="mt-2 text-sm text-slate-600">Al crearla, TagMyPet generará su código NFC y perfil público automáticamente.</p>
+          </article>
+        }
         @for (pet of pets(); track pet._id) {
           <article class="panel overflow-hidden p-0">
             <button type="button" class="flex aspect-[4/3] w-full items-center justify-center bg-stone-100" (click)="openGallery(pet, 0)">

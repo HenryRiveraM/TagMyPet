@@ -15,10 +15,13 @@ import { AuthService } from './core/services/auth.service';
         </a>
         <div class="flex max-w-full flex-wrap items-center gap-2 text-sm">
           @if (auth.user()) {
-            <a routerLink="/mascotas" class="btn-outline">Mis mascotas</a>
+            @if (can(['ADMIN', 'OWNER', 'VETERINARIO'])) { <a routerLink="/mascotas" class="btn-outline">Mis mascotas</a> }
             <a routerLink="/perdidos" class="btn-outline">Perdidos</a>
             <a routerLink="/dashboard" class="btn-outline">Dashboard</a>
-            <a routerLink="/clinicas" class="btn-outline">Clínicas</a>
+            @if (can(['ADMIN', 'OWNER', 'VETERINARIO'])) { <a routerLink="/historial" class="btn-outline">Historial</a> }
+            @if (can(['ADMIN', 'OWNER'])) { <a routerLink="/recordatorios" class="btn-outline">Recordatorios</a> }
+            @if (can(['ADMIN', 'OWNER', 'VETERINARIO'])) { <a routerLink="/clinicas" class="btn-outline">Clínicas</a> }
+            @if (can(['ADMIN'])) { <a routerLink="/admin" class="btn-outline">Admin</a> }
             <button class="btn" (click)="auth.logout()">Salir</button>
           } @else {
             <a routerLink="/login" class="btn-outline">Login</a>
@@ -34,4 +37,8 @@ import { AuthService } from './core/services/auth.service';
 })
 export class AppComponent {
   constructor(public auth: AuthService) {}
+  can(roles: string[]) {
+    const role = this.auth.user()?.rol;
+    return !!role && roles.includes(role);
+  }
 }

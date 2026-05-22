@@ -32,16 +32,31 @@ import { LostReport, Pet } from '../../core/models/domain';
     <div class="grid gap-6 lg:grid-cols-[340px_1fr]">
       <section class="panel">
         <h2 class="font-semibold">Reportar pérdida</h2>
-        <form class="mt-4 space-y-3" [formGroup]="form" (ngSubmit)="create()">
-          <select class="field" formControlName="pet">@for (pet of pets(); track pet._id) { <option [value]="pet._id">{{ pet.nombre }} *</option> }</select>
-          <input class="field" formControlName="ciudad" placeholder="Ciudad *">
-          <input class="field" formControlName="zona" placeholder="Zona">
-          <input class="field" formControlName="contactoPublico" placeholder="Teléfono público *">
-          <textarea class="field" formControlName="descripcion" placeholder="Descripción"></textarea>
-          <button class="btn w-full" [disabled]="form.invalid">Publicar</button>
-        </form>
+        @if (canCreateLost()) {
+          @if (pets().length) {
+            <form class="mt-4 space-y-3" [formGroup]="form" (ngSubmit)="create()">
+              <select class="field" formControlName="pet">@for (pet of pets(); track pet._id) { <option [value]="pet._id">{{ pet.nombre }} *</option> }</select>
+              <input class="field" formControlName="ciudad" placeholder="Ciudad *">
+              <input class="field" formControlName="zona" placeholder="Zona">
+              <input class="field" formControlName="contactoPublico" placeholder="Teléfono público *">
+              <textarea class="field" formControlName="descripcion" placeholder="Descripción"></textarea>
+              <button class="btn w-full" [disabled]="form.invalid">Publicar</button>
+            </form>
+          } @else {
+            <div class="mt-4 rounded-lg border border-dashed border-stone-300 bg-stone-50 p-5 text-sm text-slate-600">Registra una mascota antes de reportarla como perdida.</div>
+          }
+        } @else {
+          <div class="mt-4 rounded-lg border border-dashed border-stone-300 bg-stone-50 p-5 text-sm text-slate-600">Inicia sesión como dueño para reportar una mascota perdida.</div>
+        }
       </section>
       <section class="grid gap-4 md:grid-cols-2">
+        @if (!reports().length) {
+          <article class="panel text-center md:col-span-2">
+            <p class="eyebrow">Sin reportes</p>
+            <h2 class="mt-2 text-xl font-bold">No hay mascotas perdidas con estos filtros</h2>
+            <p class="mt-2 text-sm text-slate-600">Cambia departamento, especie, raza o búsqueda.</p>
+          </article>
+        }
         @for (report of reports(); track report._id) {
           <article class="panel">
             <button type="button" class="mb-4 block w-full overflow-hidden rounded-md bg-stone-100 text-left" (click)="openGallery(report.pet, 0)">
@@ -129,6 +144,7 @@ export class LostComponent implements OnInit {
   load() { this.api.lostReports(this.filter.getRawValue()).subscribe((reports) => this.reports.set(reports)); }
   create() { this.api.createLost(this.form.getRawValue()).subscribe(() => this.load()); }
   share(report: LostReport) { navigator.share?.({ title: `Mascota perdida: ${report.pet.nombre}`, text: report.descripcion || '', url: location.href }); }
+  canCreateLost() { return ['ADMIN', 'OWNER'].includes(this.auth.user()?.rol || ''); }
   canMarkFound(report: LostReport) { return this.auth.user()?.rol === 'ADMIN' || this.ownedPetIds().has(report.pet._id); }
   markFound(report: LostReport) {
     if (!confirm(`¿Marcar a ${report.pet.nombre} como encontrada? El reporte dejará de aparecer en perdidos.`)) return;

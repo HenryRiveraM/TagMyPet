@@ -29,6 +29,14 @@ import { Pet, User } from '../../core/models/domain';
               <p class="mt-1 text-sm">Si la encontraste, contacta a su familia cuanto antes.</p>
             </div>
           }
+          <div class="mb-5 rounded-lg border border-brand/10 bg-stone-50 p-4">
+            <p class="text-xs font-bold uppercase tracking-widest text-slate-500">Información crítica</p>
+            <div class="mt-3 grid gap-3 md:grid-cols-3">
+              <div><p class="text-xs font-semibold text-slate-500">Alergias</p><p class="mt-1 text-sm font-bold text-slate-950">{{ list(profile.alergias) }}</p></div>
+              <div><p class="text-xs font-semibold text-slate-500">Medicación</p><p class="mt-1 text-sm font-bold text-slate-950">{{ list(profile.medicacion) }}</p></div>
+              <div><p class="text-xs font-semibold text-slate-500">Condiciones</p><p class="mt-1 text-sm font-bold text-slate-950">{{ list(profile.enfermedades) }}</p></div>
+            </div>
+          </div>
 
           <div class="grid gap-4 md:grid-cols-[1fr_auto] md:items-center">
             <div>
@@ -38,7 +46,7 @@ import { Pet, User } from '../../core/models/domain';
             </div>
             <div class="flex flex-col gap-2 sm:flex-row md:flex-col">
               <a class="btn" [href]="'tel:' + profile.contacto.telefono">Llamar al dueño</a>
-              <a class="btn-outline" target="_blank" [href]="whatsapp(profile)">WhatsApp</a>
+              <a class="inline-flex min-h-10 items-center justify-center rounded-md bg-emerald-600 px-4 py-2 text-sm font-bold text-white shadow-sm transition hover:-translate-y-0.5 hover:bg-emerald-700" target="_blank" [href]="whatsapp(profile)">Contactar por WhatsApp</a>
             </div>
           </div>
 
@@ -54,21 +62,6 @@ import { Pet, User } from '../../core/models/domain';
           } @else {
             <button type="button" class="mt-6 text-sm font-semibold text-brand" (click)="openGallery(profile, 0)">Ver foto completa</button>
           }
-
-          <div class="mt-6 grid gap-4 md:grid-cols-3">
-            <div class="rounded-lg border border-slate-200 bg-slate-50 p-4">
-              <p class="text-xs font-semibold uppercase tracking-wide text-slate-500">Alergias</p>
-              <p class="mt-2 text-sm font-medium text-slate-900">{{ list(profile.alergias) }}</p>
-            </div>
-            <div class="rounded-lg border border-slate-200 bg-slate-50 p-4">
-              <p class="text-xs font-semibold uppercase tracking-wide text-slate-500">Medicación</p>
-              <p class="mt-2 text-sm font-medium text-slate-900">{{ list(profile.medicacion) }}</p>
-            </div>
-            <div class="rounded-lg border border-slate-200 bg-slate-50 p-4">
-              <p class="text-xs font-semibold uppercase tracking-wide text-slate-500">Condiciones</p>
-              <p class="mt-2 text-sm font-medium text-slate-900">{{ list(profile.enfermedades) }}</p>
-            </div>
-          </div>
 
           <div class="mt-6 rounded-lg border border-stone-200 bg-stone-100 p-4">
             <p class="text-sm text-stone-800">Este perfil muestra solo información crítica para identificación y emergencia. Los datos médicos completos requieren autorización del propietario.</p>

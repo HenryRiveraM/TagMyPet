@@ -91,6 +91,47 @@ import { AuthService } from '../../core/services/auth.service';
         </article>
       </div>
     </section>
+    <section class="mt-6 grid gap-4 lg:grid-cols-3">
+      <article class="panel lg:col-span-2">
+        <p class="eyebrow">Cómo funciona</p>
+        <h2 class="mt-2 text-3xl font-bold tracking-tight">Del collar al perfil en minutos</h2>
+        <div class="mt-6 grid gap-3 md:grid-cols-3">
+          @for (step of steps; track step.title) {
+            <div class="rounded-lg border border-stone-200 bg-stone-50 p-4">
+              <span class="badge">{{ step.number }}</span>
+              <h3 class="mt-4 font-bold">{{ step.title }}</h3>
+              <p class="mt-2 text-sm text-slate-600">{{ step.text }}</p>
+            </div>
+          }
+        </div>
+      </article>
+      <article class="panel">
+        <p class="eyebrow">Seguridad</p>
+        <h2 class="mt-2 text-2xl font-bold">Datos privados protegidos</h2>
+        <p class="mt-3 text-sm leading-6 text-slate-600">El perfil NFC muestra solo información crítica. Historial médico, administración y permisos se mantienen detrás de login, roles y autorización del dueño.</p>
+      </article>
+    </section>
+    <section class="mt-6 grid gap-4 md:grid-cols-2">
+      @for (audience of audiences; track audience.title) {
+        <article class="panel">
+          <span class="badge">{{ audience.tag }}</span>
+          <h2 class="mt-4 text-2xl font-bold">{{ audience.title }}</h2>
+          <p class="mt-2 text-sm leading-6 text-slate-600">{{ audience.text }}</p>
+        </article>
+      }
+    </section>
+    <section class="mt-6 rounded-lg border border-white/80 bg-white/80 p-6 shadow-xl shadow-slate-200/70 md:p-8">
+      <p class="eyebrow">Preguntas frecuentes</p>
+      <h2 class="mt-2 text-3xl font-bold tracking-tight">Dudas comunes antes de usar TagMyPet</h2>
+      <div class="mt-6 grid gap-3 md:grid-cols-2">
+        @for (faq of faqs; track faq.q) {
+          <details class="rounded-lg border border-stone-200 bg-white p-4">
+            <summary class="cursor-pointer font-bold">{{ faq.q }}</summary>
+            <p class="mt-3 text-sm leading-6 text-slate-600">{{ faq.a }}</p>
+          </details>
+        }
+      </div>
+    </section>
   `
 })
 export class HomeComponent implements OnInit {
@@ -129,5 +170,23 @@ export class HomeComponent implements OnInit {
     'Gestión de adopciones y reportes perdidos',
     'Acceso veterinario autorizado por mascota',
     'Preparado para beneficios y pagos futuros'
+  ];
+
+  steps = [
+    { number: '1', title: 'Registra la mascota', text: 'Crea su ficha con fotos, datos críticos y contacto seguro.' },
+    { number: '2', title: 'Copia el link NFC', text: 'Pega el enlace público en NFC Tools para grabarlo en el collar.' },
+    { number: '3', title: 'Escanean y contactan', text: 'Quien encuentre la mascota ve el perfil público y puede llamar o escribir por WhatsApp.' }
+  ];
+
+  audiences = [
+    { tag: 'Dueños', title: 'Todo el cuidado en un solo lugar', text: 'Gestiona mascotas, reportes perdidos, adopciones, recordatorios y perfiles NFC desde una cuenta.' },
+    { tag: 'Veterinarias', title: 'Acceso médico con permiso', text: 'Las clínicas solicitan acceso al historial de una mascota y el dueño conserva el control de autorización.' }
+  ];
+
+  faqs = [
+    { q: '¿Qué ve alguien al escanear el NFC?', a: 'Solo el perfil público: foto, nombre, datos críticos y formas de contacto. No se expone el historial completo.' },
+    { q: '¿Puedo usarlo sin sensor NFC en la computadora?', a: 'Sí. Copias el link público y lo grabas en el collar con NFC Tools desde un celular compatible.' },
+    { q: '¿Qué incluye Premium?', a: 'Mascotas ilimitadas, historial completo, recordatorios, más fotos, reportes perdidos, adopciones y acceso veterinario autorizado.' },
+    { q: '¿Quién aprueba clínicas?', a: 'El admin revisa y aprueba clínicas para que puedan operar como veterinarias oficiales dentro de TagMyPet.' }
   ];
 }

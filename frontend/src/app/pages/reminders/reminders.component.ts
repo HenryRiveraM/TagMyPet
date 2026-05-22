@@ -10,25 +10,48 @@ import { Pet, Reminder } from '../../core/models/domain';
   template: `
     <div class="grid gap-6 lg:grid-cols-[340px_1fr]">
       <section class="panel">
+        <p class="eyebrow">Alertas</p>
         <h1 class="text-2xl font-bold">Recordatorios</h1>
-        <form class="mt-5 space-y-3" [formGroup]="form" (ngSubmit)="create()">
-          <select class="field" formControlName="pet">@for (pet of pets(); track pet._id) { <option [value]="pet._id">{{ pet.nombre }} *</option> }</select>
-          <select class="field" formControlName="tipo"><option value="VACUNA">Vacuna *</option><option value="MEDICACION">Medicación *</option><option value="CONTROL">Control *</option></select>
-          <input class="field" formControlName="titulo" placeholder="Título *">
-          <label class="block">
-            <span class="mb-1.5 block text-sm font-semibold text-slate-700">Fecha *</span>
-            <input class="field" type="date" formControlName="fecha">
-          </label>
-          <button class="btn w-full" [disabled]="form.invalid">Crear alerta</button>
-        </form>
+        <p class="mt-2 text-sm text-slate-600">Organiza vacunas, medicación y controles por estado.</p>
+        @if (pets().length) {
+          <form class="mt-5 space-y-3" [formGroup]="form" (ngSubmit)="create()">
+            <select class="field" formControlName="pet">@for (pet of pets(); track pet._id) { <option [value]="pet._id">{{ pet.nombre }} *</option> }</select>
+            <select class="field" formControlName="tipo"><option value="VACUNA">Vacuna *</option><option value="MEDICACION">Medicación *</option><option value="CONTROL">Control *</option></select>
+            <input class="field" formControlName="titulo" placeholder="Título *">
+            <label class="block">
+              <span class="mb-1.5 block text-sm font-semibold text-slate-700">Fecha *</span>
+              <input class="field" type="date" formControlName="fecha">
+            </label>
+            <button class="btn w-full" [disabled]="form.invalid">Crear alerta</button>
+          </form>
+        } @else {
+          <div class="mt-5 rounded-lg border border-dashed border-stone-300 bg-stone-50 p-5 text-sm text-slate-600">Registra una mascota para crear recordatorios.</div>
+        }
       </section>
-      <section class="grid gap-3 md:grid-cols-2">
-        @for (reminder of reminders(); track reminder._id) {
-          <article class="panel" [class.opacity-50]="reminder.completado">
-            <p class="text-xs font-semibold text-brand">{{ reminder.tipo }}</p>
-            <h2 class="font-semibold">{{ reminder.titulo }}</h2>
-            <p class="text-sm text-slate-600">{{ reminder.pet.nombre }} · {{ reminder.fecha | date }}</p>
-            <button class="btn-outline mt-4" (click)="toggle(reminder._id)">Cambiar estado</button>
+      <section class="space-y-4">
+        <div class="grid gap-3 md:grid-cols-3">
+          <article class="panel"><p class="text-sm text-slate-500">Vencidos</p><p class="mt-2 text-3xl font-bold text-red-600">{{ overdue().length }}</p></article>
+          <article class="panel"><p class="text-sm text-slate-500">Próximos</p><p class="mt-2 text-3xl font-bold text-brand">{{ upcoming().length }}</p></article>
+          <article class="panel"><p class="text-sm text-slate-500">Completados</p><p class="mt-2 text-3xl font-bold text-slate-500">{{ completed().length }}</p></article>
+        </div>
+        @if (!reminders().length) {
+          <article class="panel text-center">
+            <p class="eyebrow">Sin alertas</p>
+            <h2 class="mt-2 text-xl font-bold">Crea tu primer recordatorio</h2>
+            <p class="mt-2 text-sm text-slate-600">Te ayudará a no olvidar vacunas, medicación y controles.</p>
+          </article>
+        }
+        @for (reminder of sortedReminders(); track reminder._id) {
+          <article class="panel border-l-4" [class.border-l-red-500]="status(reminder) === 'Vencido'" [class.border-l-brand]="status(reminder) === 'Próximo'" [class.border-l-slate-300]="status(reminder) === 'Completado'" [class.opacity-60]="reminder.completado">
+            <div class="flex flex-wrap items-start justify-between gap-3">
+              <div>
+                <span class="badge">{{ reminder.tipo }}</span>
+                <h2 class="mt-2 text-lg font-bold">{{ reminder.titulo }}</h2>
+                <p class="text-sm text-slate-600">{{ reminder.pet.nombre }} · {{ reminder.fecha | date }}</p>
+              </div>
+              <span class="rounded-md px-3 py-1 text-xs font-bold" [class.bg-red-50]="status(reminder) === 'Vencido'" [class.text-red-700]="status(reminder) === 'Vencido'" [class.bg-stone-100]="status(reminder) !== 'Vencido'">{{ status(reminder) }}</span>
+            </div>
+            <button class="btn-outline mt-4" (click)="toggle(reminder._id)">{{ reminder.completado ? 'Reabrir' : 'Marcar como completado' }}</button>
           </article>
         }
       </section>
@@ -51,4 +74,15 @@ export class RemindersComponent implements OnInit {
   load() { this.api.reminders().subscribe((reminders) => this.reminders.set(reminders)); }
   create() { this.api.createReminder(this.form.getRawValue()).subscribe(() => this.load()); }
   toggle(id: string) { this.api.toggleReminder(id).subscribe(() => this.load()); }
+  status(reminder: Reminder) {
+    if (reminder.completado) return 'Completado';
+    const today = new Date().setHours(0, 0, 0, 0);
+    return new Date(reminder.fecha).getTime() < today ? 'Vencido' : 'Próximo';
+  }
+  overdue() { return this.reminders().filter((reminder) => this.status(reminder) === 'Vencido'); }
+  upcoming() { return this.reminders().filter((reminder) => this.status(reminder) === 'Próximo'); }
+  completed() { return this.reminders().filter((reminder) => reminder.completado); }
+  sortedReminders() {
+    return [...this.reminders()].sort((a, b) => Number(a.completado) - Number(b.completado) || new Date(a.fecha).getTime() - new Date(b.fecha).getTime());
+  }
 }

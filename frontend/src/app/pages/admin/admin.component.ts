@@ -1,13 +1,14 @@
 import { Component, OnInit, signal } from '@angular/core';
 import { ApiService } from '../../core/services/api.service';
-import { User } from '../../core/models/domain';
+import { Clinic, User } from '../../core/models/domain';
 
 @Component({
   standalone: true,
   template: `
-    <section class="mb-6">
-      <h1 class="text-3xl font-bold">Panel admin</h1>
-      <p class="text-slate-600">Gestión, moderación y métricas.</p>
+    <section class="mb-6 overflow-hidden rounded-lg border border-white/80 bg-slate-950 p-6 text-white shadow-xl shadow-slate-300/50 md:p-8">
+      <p class="eyebrow text-stone-200">Operación</p>
+      <h1 class="mt-2 text-3xl font-bold">Panel admin</h1>
+      <p class="mt-2 max-w-2xl text-stone-300">Gestión, moderación, aprobación de clínicas y métricas principales.</p>
     </section>
     <section class="mb-6 grid gap-4 md:grid-cols-5">
       @for (item of statItems(); track item.label) {
@@ -17,29 +18,98 @@ import { User } from '../../core/models/domain';
         </article>
       }
     </section>
-    <section class="panel overflow-x-auto">
-      <table class="w-full text-left text-sm">
-        <thead><tr class="border-b"><th class="py-2">Usuario</th><th>Email</th><th>Rol</th><th>Estado</th><th></th></tr></thead>
-        <tbody>
-          @for (user of users(); track user._id || user.id) {
-            <tr class="border-b last:border-0">
-              <td class="py-3">{{ user.nombre }} {{ user.apellido }}</td>
-              <td>{{ user.email }}</td>
-              <td>{{ user.rol }}</td>
-              <td>{{ user.estado }}</td>
-              <td><button class="btn-outline" (click)="toggle(user)">Suspender/Activar</button></td>
-            </tr>
-          }
-        </tbody>
-      </table>
+    <section class="mb-6 grid gap-4 lg:grid-cols-[1fr_1.2fr]">
+      <article class="panel">
+        <div class="flex items-center justify-between gap-3">
+          <div>
+            <p class="eyebrow">Clínicas pendientes</p>
+            <h2 class="mt-2 text-xl font-bold">Aprobación oficial</h2>
+          </div>
+          <span class="badge">{{ pendingClinics().length }} pendientes</span>
+        </div>
+        @if (pendingClinics().length) {
+          <div class="mt-5 space-y-3">
+            @for (clinic of pendingClinics(); track clinic._id) {
+              <div class="rounded-lg border border-stone-200 bg-stone-50 p-4">
+                <div class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                  <div>
+                    <p class="font-bold">{{ clinic.nombre }}</p>
+                    <p class="mt-1 text-sm text-slate-600">{{ clinic.ciudad }} · {{ clinic.direccion }}</p>
+                    <p class="mt-1 text-xs text-slate-500">{{ clinic.telefono }} · {{ clinic.email || 'Sin email' }}</p>
+                  </div>
+                  <div class="flex gap-2">
+                    <button class="btn" (click)="updateClinic(clinic, 'ACTIVE')">Aprobar</button>
+                    <button class="btn-outline" (click)="updateClinic(clinic, 'SUSPENDED')">Rechazar</button>
+                  </div>
+                </div>
+              </div>
+            }
+          </div>
+        } @else {
+          <div class="mt-5 rounded-lg border border-dashed border-stone-300 bg-stone-50 p-6 text-sm text-slate-600">No hay clínicas pendientes por aprobar.</div>
+        }
+      </article>
+      <article class="panel">
+        <div class="flex items-center justify-between gap-3">
+          <div>
+            <p class="eyebrow">Usuarios</p>
+            <h2 class="mt-2 text-xl font-bold">Cuentas y estados</h2>
+          </div>
+          <span class="badge">{{ users().length }} usuarios</span>
+        </div>
+        <div class="mt-5 max-h-[420px] overflow-auto rounded-lg border border-stone-200">
+          <table class="w-full min-w-[720px] text-left text-sm">
+            <thead class="bg-stone-50 text-xs uppercase tracking-wide text-slate-500"><tr><th class="px-4 py-3">Usuario</th><th>Email</th><th>Rol</th><th>Estado</th><th></th></tr></thead>
+            <tbody>
+              @for (user of users(); track user._id || user.id) {
+                <tr class="border-t border-stone-200">
+                  <td class="px-4 py-3 font-semibold">{{ user.nombre }} {{ user.apellido }}</td>
+                  <td>{{ user.email }}</td>
+                  <td><span class="badge">{{ user.rol }}</span></td>
+                  <td>{{ user.estado || 'ACTIVE' }}</td>
+                  <td><button class="btn-outline" (click)="toggle(user)">{{ user.estado === 'SUSPENDED' ? 'Activar' : 'Suspender' }}</button></td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      </article>
+    </section>
+    <section class="panel">
+      <div class="flex items-center justify-between gap-3">
+        <div>
+          <p class="eyebrow">Clínicas registradas</p>
+          <h2 class="mt-2 text-xl font-bold">Directorio administrativo</h2>
+        </div>
+        <span class="badge">{{ clinics().length }} clínicas</span>
+      </div>
+      <div class="mt-5 grid gap-3 md:grid-cols-2">
+        @for (clinic of clinics(); track clinic._id) {
+          <article class="rounded-lg border border-stone-200 bg-stone-50 p-4">
+            <div class="flex items-start justify-between gap-3">
+              <div>
+                <p class="font-bold">{{ clinic.nombre }}</p>
+                <p class="mt-1 text-sm text-slate-600">{{ clinic.ciudad }} · {{ clinic.direccion }}</p>
+              </div>
+              <span class="badge">{{ clinic.estado }}</span>
+            </div>
+            <div class="mt-3 flex flex-wrap gap-2">
+              <button class="btn-outline" (click)="updateClinic(clinic, 'ACTIVE')">Activar</button>
+              <button class="btn-outline" (click)="updateClinic(clinic, 'SUSPENDED')">Suspender</button>
+            </div>
+          </article>
+        }
+      </div>
     </section>
   `
 })
 export class AdminComponent implements OnInit {
   stats = signal<Record<string, number>>({});
   users = signal<User[]>([]);
+  clinics = signal<Clinic[]>([]);
   constructor(private api: ApiService) {}
   ngOnInit() { this.load(); }
+  pendingClinics() { return this.clinics().filter((clinic) => clinic.estado === 'PENDING'); }
   statItems() {
     const s = this.stats();
     return [
@@ -52,10 +122,17 @@ export class AdminComponent implements OnInit {
       { label: 'Tags NFC', value: s['tags'] || 0 }
     ];
   }
-  load() { this.api.adminStats().subscribe((s) => this.stats.set(s)); this.api.users().subscribe((u) => this.users.set(u)); }
+  load() {
+    this.api.adminStats().subscribe((s) => this.stats.set(s));
+    this.api.users().subscribe((u) => this.users.set(u));
+    this.api.clinics().subscribe((clinics) => this.clinics.set(clinics));
+  }
   toggle(user: User) {
     const id = user._id || user.id;
     if (!id) return;
     this.api.updateUserStatus(id, user.estado === 'ACTIVE' ? 'SUSPENDED' : 'ACTIVE').subscribe(() => this.load());
+  }
+  updateClinic(clinic: Clinic, estado: 'ACTIVE' | 'SUSPENDED') {
+    this.api.updateClinicStatus(clinic._id, estado).subscribe(() => this.load());
   }
 }

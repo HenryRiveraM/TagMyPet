@@ -1,11 +1,13 @@
-import { Component } from '@angular/core';
+import { DatePipe } from '@angular/common';
+import { Component, OnInit, computed, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { AuthService } from '../../core/services/auth.service';
 import { ApiService } from '../../core/services/api.service';
+import { Clinic, Pet, Reminder } from '../../core/models/domain';
 
 @Component({
   standalone: true,
-  imports: [RouterLink],
+  imports: [RouterLink, DatePipe],
   template: `
     <section class="mb-6 overflow-hidden rounded-lg border border-white/80 bg-slate-950 p-6 text-white shadow-xl shadow-slate-300/50 md:p-8">
       <p class="eyebrow text-stone-200">Panel de control</p>
@@ -38,11 +40,104 @@ import { ApiService } from '../../core/services/api.service';
         </a>
       }
     </section>
+    <section class="mt-6 grid gap-4 lg:grid-cols-3">
+      <article class="panel lg:col-span-2">
+        <div class="flex items-center justify-between gap-3">
+          <div>
+            <p class="eyebrow">Acciones rápidas</p>
+            <h2 class="mt-2 text-xl font-bold">Lo más importante hoy</h2>
+          </div>
+          <span class="badge">{{ pets().length }} mascotas</span>
+        </div>
+        <div class="mt-5 grid gap-3 sm:grid-cols-2">
+          @for (action of quickActions(); track action.href) {
+            <a [routerLink]="action.href" class="rounded-lg border border-stone-200 bg-stone-50 p-4 transition hover:-translate-y-0.5 hover:border-brand hover:bg-white">
+              <p class="text-sm font-bold text-slate-950">{{ action.title }}</p>
+              <p class="mt-1 text-sm text-slate-600">{{ action.text }}</p>
+            </a>
+          }
+        </div>
+      </article>
+      <article class="panel">
+        <p class="eyebrow">Recordatorios próximos</p>
+        <h2 class="mt-2 text-xl font-bold">Alertas</h2>
+        @if (upcomingReminders().length) {
+          <div class="mt-4 space-y-3">
+            @for (reminder of upcomingReminders(); track reminder._id) {
+              <div class="rounded-lg border border-stone-200 bg-white p-3">
+                <p class="text-sm font-bold">{{ reminder.titulo }}</p>
+                <p class="mt-1 text-xs text-slate-600">{{ reminder.pet.nombre }} · {{ reminder.fecha | date }}</p>
+              </div>
+            }
+          </div>
+        } @else {
+          <div class="mt-4 rounded-lg border border-dashed border-stone-300 bg-stone-50 p-5 text-sm text-slate-600">
+            No hay recordatorios próximos.
+            @if (auth.user()?.rol !== 'VETERINARIO') { <a routerLink="/recordatorios" class="mt-3 inline-flex font-bold text-brand">Crear recordatorio</a> }
+          </div>
+        }
+      </article>
+    </section>
+    <section class="mt-6 grid gap-4 md:grid-cols-2">
+      <article class="panel">
+        <p class="eyebrow">NFC</p>
+        <h2 class="mt-2 text-xl font-bold">Perfiles listos para collar</h2>
+        @if (pets().length) {
+          <div class="mt-4 space-y-3">
+            @for (pet of pets().slice(0, 3); track pet._id) {
+              <div class="flex items-center justify-between gap-3 rounded-lg bg-stone-50 p-3">
+                <div>
+                  <p class="font-bold">{{ pet.nombre }}</p>
+                  <p class="text-xs text-slate-600">{{ pet.especie }} · {{ pet.codigoNFC }}</p>
+                </div>
+                <a class="btn-outline" [routerLink]="['/pet/public', pet.codigoNFC]">Ver</a>
+              </div>
+            }
+          </div>
+        } @else {
+          <div class="mt-4 rounded-lg border border-dashed border-stone-300 bg-stone-50 p-5 text-sm text-slate-600">
+            Registra tu primera mascota para generar su perfil NFC.
+            <a routerLink="/mascotas" class="mt-3 inline-flex font-bold text-brand">Registrar mascota</a>
+          </div>
+        }
+      </article>
+      <article class="panel">
+        <p class="eyebrow">Clínicas autorizadas</p>
+        <h2 class="mt-2 text-xl font-bold">Red veterinaria</h2>
+        @if (activeClinics().length) {
+          <div class="mt-4 space-y-3">
+            @for (clinic of activeClinics().slice(0, 3); track clinic._id) {
+              <div class="rounded-lg bg-stone-50 p-3">
+                <p class="font-bold">{{ clinic.nombre }}</p>
+                <p class="text-xs text-slate-600">{{ clinic.ciudad }} · {{ clinic.telefono }}</p>
+              </div>
+            }
+          </div>
+        } @else {
+          <div class="mt-4 rounded-lg border border-dashed border-stone-300 bg-stone-50 p-5 text-sm text-slate-600">
+            Todavía no hay clínicas oficiales activas.
+            <a routerLink="/clinicas" class="mt-3 inline-flex font-bold text-brand">Ver clínicas</a>
+          </div>
+        }
+      </article>
+    </section>
   `
 })
-export class DashboardComponent {
+export class DashboardComponent implements OnInit {
   message = '';
+  pets = signal<Pet[]>([]);
+  reminders = signal<Reminder[]>([]);
+  clinics = signal<Clinic[]>([]);
+  activeClinics = computed(() => this.clinics().filter((clinic) => clinic.estado === 'ACTIVE'));
   constructor(public auth: AuthService, private api: ApiService) {}
+
+  ngOnInit() {
+    this.api.pets().subscribe({ next: (pets) => this.pets.set(pets), error: () => undefined });
+    this.api.clinics().subscribe({ next: (clinics) => this.clinics.set(clinics), error: () => undefined });
+    if (this.auth.user()?.rol !== 'VETERINARIO') {
+      this.api.reminders().subscribe({ next: (reminders) => this.reminders.set(reminders), error: () => undefined });
+    }
+  }
 
   roleLabel(role?: string) {
     const labels: Record<string, string> = {
@@ -71,6 +166,26 @@ export class DashboardComponent {
       { tag: 'Admin', title: 'Admin', text: 'Usuarios, moderación y estadísticas.', href: '/admin', roles: ['ADMIN'] }
     ];
     return cards.filter((card) => role && card.roles.includes(role));
+  }
+
+  quickActions() {
+    const role = this.auth.user()?.rol;
+    return [
+      { title: 'Registrar o revisar mascotas', text: 'Fotos, NFC y datos críticos.', href: '/mascotas', roles: ['ADMIN', 'OWNER', 'VETERINARIO'] },
+      { title: 'Reportar mascota perdida', text: 'Publica contacto y zona de búsqueda.', href: '/perdidos', roles: ['ADMIN', 'OWNER'] },
+      { title: 'Copiar link NFC', text: 'Pega el enlace en NFC Tools.', href: '/tags-nfc', roles: ['ADMIN', 'OWNER'] },
+      { title: 'Historial médico', text: 'Vacunas, tratamientos y controles.', href: '/historial', roles: ['ADMIN', 'OWNER', 'VETERINARIO'] },
+      { title: 'Aprobar clínicas', text: 'Revisa solicitudes pendientes.', href: '/admin', roles: ['ADMIN'] }
+    ].filter((action) => role && action.roles.includes(role));
+  }
+
+  upcomingReminders() {
+    const now = new Date();
+    const limit = new Date();
+    limit.setDate(limit.getDate() + 14);
+    return this.reminders()
+      .filter((reminder) => !reminder.completado && new Date(reminder.fecha) >= now && new Date(reminder.fecha) <= limit)
+      .slice(0, 4);
   }
 
   resendVerification() {
