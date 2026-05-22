@@ -42,6 +42,55 @@ import { AuthService } from '../../core/services/auth.service';
         </article>
       }
     </section>
+    <section class="mt-6 rounded-lg border border-white/80 bg-white/80 p-6 shadow-xl shadow-slate-200/70 md:p-8">
+      <div class="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
+        <div>
+          <p class="eyebrow">Planes de pago</p>
+          <h2 class="mt-2 text-3xl font-bold tracking-tight text-slate-950">Elige cómo cuidar a tus mascotas</h2>
+          <p class="mt-3 max-w-2xl text-sm leading-6 text-slate-600">Empieza gratis y activa Premium cuando necesites más mascotas, más historial y una gestión completa.</p>
+        </div>
+        <span class="badge w-fit">Sin contratos</span>
+      </div>
+
+      <div class="mt-6 grid gap-4 lg:grid-cols-2">
+        <article class="rounded-lg border border-slate-200 bg-white p-6 shadow-sm">
+          <div class="flex items-start justify-between gap-4">
+            <div>
+              <h3 class="text-2xl font-bold text-slate-950">Free</h3>
+              <p class="mt-1 text-sm text-slate-600">Para probar TagMyPet y manejar lo esencial.</p>
+            </div>
+            <p class="text-right text-3xl font-bold text-slate-950">0 Bs</p>
+          </div>
+          <ul class="mt-6 space-y-3 text-sm text-slate-700">
+            @for (item of freePlan; track item) {
+              <li class="flex gap-3"><span class="mt-1 h-2 w-2 shrink-0 rounded-full bg-brand"></span><span>{{ item }}</span></li>
+            }
+          </ul>
+          <a routerLink="/register" class="btn-outline mt-6 w-full">Crear cuenta gratis</a>
+        </article>
+
+        <article class="relative overflow-hidden rounded-lg border border-brand bg-slate-950 p-6 text-white shadow-2xl shadow-slate-300/70">
+          <div class="pointer-events-none absolute -right-16 -top-16 h-44 w-44 rounded-full bg-gold/30 blur-3xl"></div>
+          <div class="relative flex items-start justify-between gap-4">
+            <div>
+              <span class="rounded-md bg-white/10 px-3 py-1 text-xs font-bold uppercase tracking-wide text-stone-200">Recomendado</span>
+              <h3 class="mt-4 text-2xl font-bold">Premium</h3>
+              <p class="mt-1 text-sm text-stone-300">Para dueños que quieren gestión completa.</p>
+            </div>
+            <div class="text-right">
+              <p class="text-4xl font-bold">70 Bs</p>
+              <p class="mt-1 text-sm text-stone-300">/ mes</p>
+            </div>
+          </div>
+          <ul class="relative mt-6 space-y-3 text-sm text-stone-100">
+            @for (item of premiumPlan; track item) {
+              <li class="flex gap-3"><span class="mt-1 h-2 w-2 shrink-0 rounded-full bg-gold"></span><span>{{ item }}</span></li>
+            }
+          </ul>
+          <a routerLink="/register" class="mt-6 inline-flex min-h-10 w-full items-center justify-center rounded-md bg-white px-4 py-2 text-sm font-bold text-slate-950 shadow-sm transition hover:-translate-y-0.5 hover:bg-stone-100">Activar Premium</a>
+        </article>
+      </div>
+    </section>
   `
 })
 export class HomeComponent implements OnInit {
@@ -63,5 +112,22 @@ export class HomeComponent implements OnInit {
     { tag: 'Salud', title: 'Veterinaria', text: 'Vacunas, tratamientos, alergias y controles.' },
     { tag: 'Alerta', title: 'Perdidos', text: 'Reportes públicos con filtros por ciudad.' },
     { tag: 'Hogar', title: 'Adopciones', text: 'Cuestionario y firma digital para adopción responsable.' }
+  ];
+
+  freePlan = [
+    'Hasta 2 mascotas registradas',
+    'Perfil NFC público por mascota',
+    'Datos críticos visibles para emergencias',
+    'Reporte básico de mascota perdida'
+  ];
+
+  premiumPlan = [
+    'Mascotas ilimitadas',
+    'Historial clínico completo',
+    'Recordatorios de vacunas, medicación y controles',
+    'Hasta 5 fotos por mascota',
+    'Gestión de adopciones y reportes perdidos',
+    'Acceso veterinario autorizado por mascota',
+    'Preparado para beneficios y pagos futuros'
   ];
 }
