@@ -11,7 +11,7 @@ import { PhotoGalleryView, PhotoViewerComponent } from '../../components/photo-v
     @if (pet(); as profile) {
       <section class="mx-auto max-w-4xl overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm">
         <div class="relative">
-          <button type="button" class="group h-[min(65vh,560px)] min-h-[320px] w-full overflow-hidden bg-stone-100" (click)="openGallery(profile, 0)" [attr.aria-label]="'Ampliar fotos de ' + profile.nombre">
+          <button type="button" class="group h-[min(65vh,560px)] min-h-[320px] w-full overflow-hidden bg-stone-100" (click)="openGallery(profile, coverIndex(profile))" [attr.aria-label]="'Ampliar fotos de ' + profile.nombre">
             <img class="h-full w-full object-cover transition duration-500 group-hover:scale-[1.04]" [style.object-position]="coverPosition(profile)" [src]="mainPhoto(profile)" [alt]="profile.nombre">
           </button>
           <div class="absolute inset-x-0 bottom-0 bg-gradient-to-t from-slate-950/80 to-transparent p-6 text-white">
@@ -60,7 +60,7 @@ import { PhotoGalleryView, PhotoViewerComponent } from '../../components/photo-v
                 </button>
               }
             </div>
-            <button type="button" class="mt-3 text-sm font-semibold text-brand" (click)="openGallery(profile, 0)">Ver todas las fotos</button>
+            <button type="button" class="mt-3 text-sm font-semibold text-brand" (click)="openGallery(profile, coverIndex(profile))">Ver todas las fotos</button>
           } @else {
             <button type="button" class="mt-6 text-sm font-semibold text-brand" (click)="openGallery(profile, 0)">Ver foto completa</button>
           }
@@ -105,7 +105,11 @@ export class NfcProfileComponent implements OnInit {
     return `https://wa.me/${phone.replace('+', '')}?text=${text}`;
   }
   mainPhoto(profile: Partial<Pet>) {
-    return this.photos(profile)[0];
+    return profile.foto || this.photos(profile)[0];
+  }
+  coverIndex(profile: Partial<Pet>) {
+    const index = this.photos(profile).indexOf(this.mainPhoto(profile));
+    return index >= 0 ? index : 0;
   }
   coverPosition(profile: Partial<Pet>) {
     return `${profile.fotoPosicionX ?? 50}% ${profile.fotoPosicionY ?? 50}%`;

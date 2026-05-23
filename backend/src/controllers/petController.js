@@ -28,6 +28,11 @@ async function uploadImages(files = []) {
   return Promise.all(selected.map((file) => uploadImage(file.buffer)));
 }
 
+function selectedUploadedPhoto(photos, requestedIndex) {
+  const index = Number(requestedIndex);
+  return Number.isInteger(index) && index >= 0 && index < photos.length ? photos[index] : photos[0];
+}
+
 const canManagePet = (user, pet) => user.rol === 'ADMIN' || pet.propietario.toString() === user._id.toString();
 
 export const listPets = asyncHandler(async (req, res) => {
@@ -51,14 +56,18 @@ export const createPet = asyncHandler(async (req, res) => {
 
   const data = { ...req.body, propietario: req.user._id };
   delete data.codigoNFC;
+  delete data.fotoPrincipal;
+  delete data.foto;
+  delete data.fotos;
   data.codigoNFC = crypto.randomUUID();
   data.consentimientoPerfilPublico = true;
   data.fechaConsentimiento = new Date();
   const photos = await uploadImages(req.files || []);
   if (photos.length) {
     data.fotos = photos;
-    data.foto = photos[0];
+    data.foto = selectedUploadedPhoto(photos, data.fotoPrincipalIndice);
   }
+  delete data.fotoPrincipalIndice;
 
   const pet = await Pet.create(data);
   const tag = await NfcTag.findOne({ code: pet.codigoNFC.toUpperCase(), status: { $in: ['AVAILABLE', 'SOLD'] } });
@@ -90,6 +99,12 @@ export const updatePet = asyncHandler(async (req, res) => {
 
   const data = { ...req.body };
   delete data.codigoNFC;
+  const selectedExistingPhoto = data.fotoPrincipal;
+  const selectedNewPhotoIndex = data.fotoPrincipalIndice;
+  delete data.fotoPrincipal;
+  delete data.fotoPrincipalIndice;
+  delete data.foto;
+  delete data.fotos;
   if (!pet.consentimientoPerfilPublico && String(data.consentimientoPerfilPublico) === 'true') {
     pet.consentimientoPerfilPublico = true;
     pet.fechaConsentimiento = new Date();
@@ -100,7 +115,9 @@ export const updatePet = asyncHandler(async (req, res) => {
   const photos = await uploadImages(req.files || []);
   if (photos.length) {
     pet.fotos = photos;
-    pet.foto = photos[0];
+    pet.foto = selectedUploadedPhoto(photos, selectedNewPhotoIndex);
+  } else if (selectedExistingPhoto && ((pet.fotos || []).includes(selectedExistingPhoto) || pet.foto === selectedExistingPhoto)) {
+    pet.foto = selectedExistingPhoto;
   }
   await pet.save();
   res.json(pet);

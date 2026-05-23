@@ -66,7 +66,7 @@ import { PhotoGalleryView, PhotoViewerComponent } from '../../components/photo-v
         }
         @for (report of reports(); track report._id) {
           <article class="panel">
-            <button type="button" class="group relative mb-4 block w-full overflow-hidden rounded-md bg-stone-100 text-left" (click)="openGallery(report.pet, 0)" [attr.aria-label]="'Ampliar fotos de ' + report.pet.nombre">
+            <button type="button" class="group relative mb-4 block w-full overflow-hidden rounded-md bg-stone-100 text-left" (click)="openGallery(report.pet, coverIndex(report.pet))" [attr.aria-label]="'Ampliar fotos de ' + report.pet.nombre">
               <span class="flex aspect-[4/3] w-full items-center justify-center">
                 <img class="h-full w-full object-cover transition duration-500 group-hover:scale-[1.04]" [style.object-position]="coverPosition(report.pet)" [src]="mainPhoto(report.pet)" [alt]="report.pet.nombre">
               </span>
@@ -151,7 +151,11 @@ export class LostComponent implements OnInit {
     const images = pet.fotos?.length ? pet.fotos : pet.foto ? [pet.foto] : [];
     return images.length ? images : ['https://images.unsplash.com/photo-1583511655826-05700d52f4d9?auto=format&fit=crop&w=900&q=80'];
   }
-  mainPhoto(pet: Pet) { return this.photos(pet)[0]; }
+  mainPhoto(pet: Pet) { return pet.foto || this.photos(pet)[0]; }
+  coverIndex(pet: Pet) {
+    const index = this.photos(pet).indexOf(this.mainPhoto(pet));
+    return index >= 0 ? index : 0;
+  }
   coverPosition(pet: Pet) { return `${pet.fotoPosicionX ?? 50}% ${pet.fotoPosicionY ?? 50}%`; }
   openGallery(pet: Pet, index: number) {
     const photos = this.photos(pet);

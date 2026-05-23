@@ -1,4 +1,4 @@
-import { Component, ElementRef, OnInit, ViewChild, inject, signal } from '@angular/core';
+import { Component, ElementRef, OnDestroy, OnInit, ViewChild, inject, signal } from '@angular/core';
 import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { ApiService } from '../../core/services/api.service';
@@ -47,13 +47,35 @@ import { PhotoGalleryView, PhotoViewerComponent } from '../../components/photo-v
           @if (previewPhoto(); as preview) {
             <section class="rounded-lg border border-stone-200 bg-stone-50 p-3">
               <div class="flex items-center justify-between gap-3">
-                <p class="text-sm font-bold text-slate-900">Encuadre de portada</p>
-                <span class="text-xs text-slate-500">Arrastra los controles</span>
+                <p class="text-sm font-bold text-slate-900">Foto principal del perfil</p>
+                <span class="rounded-full bg-slate-950 px-2.5 py-1 text-[11px] font-bold text-white">Portada</span>
               </div>
-              <p class="mt-1 text-xs leading-5 text-slate-600">Acomoda la cara de tu mascota. La foto completa seguirá visible en la galería.</p>
+              <p class="mt-1 text-xs leading-5 text-slate-600">Esta será la primera imagen que se verá al escanear el NFC. Puedes cambiarla cuando quieras.</p>
               <div class="mt-3 aspect-[4/3] overflow-hidden rounded-md bg-stone-200">
                 <img class="h-full w-full object-cover" [style.object-position]="previewPosition()" [src]="preview" alt="Vista previa de portada">
               </div>
+              @if (coverPhotos().length > 1) {
+                <p class="mt-3 text-xs font-semibold text-slate-600">Elige la portada</p>
+                <div class="mt-2 grid grid-cols-5 gap-2">
+                  @for (photo of coverPhotos(); track photo; let i = $index) {
+                    <button
+                      type="button"
+                      class="relative overflow-hidden rounded-md border-2 bg-stone-100 transition"
+                      [class.border-slate-950]="selectedCoverIndex() === i"
+                      [class.border-transparent]="selectedCoverIndex() !== i"
+                      [class.opacity-60]="selectedCoverIndex() !== i"
+                      (click)="chooseCover(i)"
+                      [attr.aria-label]="'Elegir foto ' + (i + 1) + ' como portada'"
+                    >
+                      <img class="aspect-square w-full object-cover" [src]="photo" [alt]="''">
+                      @if (selectedCoverIndex() === i) {
+                        <span class="absolute inset-x-1 bottom-1 rounded bg-black/70 px-1 py-0.5 text-[9px] font-bold text-white">PORTADA</span>
+                      }
+                    </button>
+                  }
+                </div>
+              }
+              <p class="mt-3 text-xs leading-5 text-slate-600">Acomoda la cara con los controles. La foto completa seguirá disponible en la galería.</p>
               <label class="mt-3 block text-xs font-semibold text-slate-600">
                 Horizontal
                 <input class="mt-1 w-full accent-slate-950" type="range" min="0" max="100" formControlName="fotoPosicionX">
@@ -90,7 +112,7 @@ import { PhotoGalleryView, PhotoViewerComponent } from '../../components/photo-v
         }
         @for (pet of pets(); track pet._id) {
           <article class="panel overflow-hidden p-0">
-            <button type="button" class="group relative flex aspect-[4/3] w-full items-center justify-center bg-stone-100" (click)="openGallery(pet, 0)" [attr.aria-label]="'Ampliar fotos de ' + pet.nombre">
+            <button type="button" class="group relative flex aspect-[4/3] w-full items-center justify-center bg-stone-100" (click)="openGallery(pet, coverIndex(pet))" [attr.aria-label]="'Ampliar fotos de ' + pet.nombre">
               <img class="h-full w-full object-cover transition duration-500 group-hover:scale-[1.04]" [style.object-position]="coverPosition(pet)" [src]="mainPhoto(pet)" [alt]="pet.nombre">
               <span class="absolute bottom-3 right-3 rounded-full bg-black/55 px-3 py-1.5 text-xs font-semibold text-white opacity-0 backdrop-blur-sm transition group-hover:opacity-100 group-focus:opacity-100">Ampliar</span>
             </button>
@@ -113,17 +135,18 @@ import { PhotoGalleryView, PhotoViewerComponent } from '../../components/photo-v
             @if ((pet.fotos?.length || 0) > 1) {
               <div class="mt-4 grid grid-cols-5 gap-2">
                 @for (photo of pet.fotos?.slice(0, 5); track photo; let i = $index) {
-                  <button type="button" class="overflow-hidden rounded-md bg-stone-100 ring-brand/20 transition hover:ring-4" (click)="openGallery(pet, i)">
+                  <button type="button" class="relative overflow-hidden rounded-md bg-stone-100 ring-brand/20 transition hover:ring-4" [class.ring-2]="mainPhoto(pet) === photo" [class.ring-slate-950]="mainPhoto(pet) === photo" (click)="openGallery(pet, i)">
                     <img class="aspect-square w-full object-cover" [src]="photo" [alt]="pet.nombre + ' foto ' + (i + 1)">
+                    @if (mainPhoto(pet) === photo) { <span class="absolute inset-x-1 bottom-1 rounded bg-black/70 px-1 py-0.5 text-center text-[9px] font-bold text-white">PORTADA</span> }
                   </button>
                 }
               </div>
-              <button type="button" class="mt-3 text-sm font-semibold text-brand" (click)="openGallery(pet, 0)">Ver todas las fotos</button>
+              <button type="button" class="mt-3 text-sm font-semibold text-brand" (click)="openGallery(pet, coverIndex(pet))">Ver todas las fotos</button>
             } @else {
               <button type="button" class="mt-3 text-sm font-semibold text-brand" (click)="openGallery(pet, 0)">Ver foto completa</button>
             }
             <div class="mt-4 flex gap-2">
-              <button class="btn-outline" (click)="edit(pet)">Editar</button>
+              <button class="btn-outline" (click)="edit(pet)">Editar / portada</button>
               <button class="btn-outline" (click)="remove(pet)">Eliminar</button>
             </div>
             </div>
@@ -137,7 +160,7 @@ import { PhotoGalleryView, PhotoViewerComponent } from '../../components/photo-v
     }
   `
 })
-export class PetsComponent implements OnInit {
+export class PetsComponent implements OnInit, OnDestroy {
   private fb = inject(FormBuilder);
   private api = inject(ApiService);
   private toast = inject(ToastService);
@@ -149,9 +172,11 @@ export class PetsComponent implements OnInit {
   loading = signal(true);
   editingId = signal<string | null>(null);
   previewPhoto = signal<string | null>(null);
+  coverPhotos = signal<string[]>([]);
+  selectedCoverIndex = signal(0);
   gallery = signal<PhotoGalleryView | null>(null);
   files: File[] = [];
-  private localPreviewUrl: string | null = null;
+  private localPreviewUrls: string[] = [];
   form = this.fb.nonNullable.group({
     nombre: ['', Validators.required],
     especie: ['', Validators.required],
@@ -168,6 +193,10 @@ export class PetsComponent implements OnInit {
 
   ngOnInit() { this.load(); }
 
+  ngOnDestroy() {
+    this.localPreviewUrls.forEach((url) => URL.revokeObjectURL(url));
+  }
+
   load() {
     this.loading.set(true);
     this.api.pets().subscribe({ next: (pets) => { this.pets.set(pets); this.loading.set(false); }, error: () => { this.loading.set(false); this.toast.error('No se pudieron cargar las mascotas'); } });
@@ -181,11 +210,11 @@ export class PetsComponent implements OnInit {
       this.message.set('Puedes subir máximo 5 fotos por mascota.');
       input.value = '';
       this.files = [];
-      this.setPreview(null);
+      this.setCoverPhotos([]);
       return;
     }
     this.files = selected;
-    this.setPreview(selected[0] ? URL.createObjectURL(selected[0]) : null, Boolean(selected[0]));
+    this.setCoverPhotos(selected.map((file) => URL.createObjectURL(file)), 0, Boolean(selected.length));
   }
 
   create() {
@@ -206,6 +235,11 @@ export class PetsComponent implements OnInit {
       data.append(key, String(resolved ?? ''));
     });
     this.files.forEach((file) => data.append('fotos', file));
+    if (this.files.length) {
+      data.append('fotoPrincipalIndice', String(this.selectedCoverIndex()));
+    } else if (this.editingId() && this.previewPhoto()) {
+      data.append('fotoPrincipal', this.previewPhoto() as string);
+    }
     const wasEditing = Boolean(this.editingId());
     const request = wasEditing ? this.api.updatePet(this.editingId() as string, data) : this.api.createPet(data);
     request.subscribe({
@@ -245,7 +279,9 @@ export class PetsComponent implements OnInit {
       fotoPosicionY: pet.fotoPosicionY ?? 50,
       consentimientoPerfilPublico: true
     });
-    this.setPreview(this.mainPhoto(pet));
+    const photos = pet.fotos?.length ? pet.fotos : pet.foto ? [pet.foto] : [];
+    const primaryIndex = photos.indexOf(pet.foto || '');
+    this.setCoverPhotos(photos, primaryIndex >= 0 ? primaryIndex : 0);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
@@ -253,7 +289,7 @@ export class PetsComponent implements OnInit {
     this.editingId.set(null);
     this.form.reset({ especie: '', especieOtra: '', sexo: 'DESCONOCIDO', edad: 0, esterilizado: false, fotoPosicionX: 50, fotoPosicionY: 50, consentimientoPerfilPublico: false });
     this.files = [];
-    this.setPreview(null);
+    this.setCoverPhotos([]);
     if (this.fileInput) this.fileInput.nativeElement.value = '';
     if (clearMessage) this.message.set('');
   }
@@ -271,7 +307,12 @@ export class PetsComponent implements OnInit {
   }
 
   mainPhoto(pet: Pet) {
-    return this.photos(pet)[0];
+    return pet.foto || this.photos(pet)[0];
+  }
+
+  coverIndex(pet: Pet) {
+    const index = this.photos(pet).indexOf(this.mainPhoto(pet));
+    return index >= 0 ? index : 0;
   }
 
   coverPosition(pet: Pet) {
@@ -294,6 +335,13 @@ export class PetsComponent implements OnInit {
 
   closeGallery() { this.gallery.set(null); }
 
+  chooseCover(index: number) {
+    const photo = this.coverPhotos()[index];
+    if (!photo) return;
+    this.selectedCoverIndex.set(index);
+    this.previewPhoto.set(photo);
+  }
+
   copyText(value: string, message: string) {
     navigator.clipboard?.writeText(value);
     this.isError.set(false);
@@ -301,9 +349,11 @@ export class PetsComponent implements OnInit {
     this.toast.success(message);
   }
 
-  private setPreview(url: string | null, local = false) {
-    if (this.localPreviewUrl) URL.revokeObjectURL(this.localPreviewUrl);
-    this.localPreviewUrl = local ? url : null;
-    this.previewPhoto.set(url);
+  private setCoverPhotos(photos: string[], selectedIndex = 0, local = false) {
+    this.localPreviewUrls.forEach((url) => URL.revokeObjectURL(url));
+    this.localPreviewUrls = local ? photos : [];
+    this.coverPhotos.set(photos);
+    this.chooseCover(Math.min(Math.max(selectedIndex, 0), Math.max(photos.length - 1, 0)));
+    if (!photos.length) this.previewPhoto.set(null);
   }
 }

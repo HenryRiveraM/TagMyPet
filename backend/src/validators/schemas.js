@@ -28,6 +28,8 @@ export const petRules = [
   body('edad').optional().isNumeric().withMessage('Edad inválida'),
   body('fotoPosicionX').optional().isFloat({ min: 0, max: 100 }).withMessage('Encuadre horizontal inválido'),
   body('fotoPosicionY').optional().isFloat({ min: 0, max: 100 }).withMessage('Encuadre vertical inválido'),
+  body('fotoPrincipalIndice').optional().isInt({ min: 0, max: 4 }).withMessage('Foto de portada inválida'),
+  body('fotoPrincipal').optional({ values: 'falsy' }).isURL().withMessage('Foto de portada inválida'),
   body('codigoNFC').optional().customSanitizer(() => undefined)
 ];
 

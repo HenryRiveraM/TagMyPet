@@ -74,7 +74,7 @@ import { PhotoGalleryView, PhotoViewerComponent } from '../../components/photo-v
         }
         @for (adoption of adoptions(); track adoption._id) {
           <article class="panel grid gap-4 overflow-hidden md:grid-cols-[240px_1fr]">
-            <button type="button" class="group relative aspect-[4/3] w-full overflow-hidden rounded-lg bg-stone-100 md:h-full" (click)="openGallery(adoption.pet, 0)" [attr.aria-label]="'Ver fotos de ' + adoption.pet.nombre">
+            <button type="button" class="group relative aspect-[4/3] w-full overflow-hidden rounded-lg bg-stone-100 md:h-full" (click)="openGallery(adoption.pet, coverIndex(adoption.pet))" [attr.aria-label]="'Ver fotos de ' + adoption.pet.nombre">
               <img class="h-full w-full object-cover transition duration-500 group-hover:scale-[1.04]" [style.object-position]="position(adoption.pet)" [src]="mainPhoto(adoption.pet)" [alt]="adoption.pet.nombre">
               <span class="absolute inset-x-3 bottom-3 rounded-md bg-black/55 px-3 py-2 text-left text-xs font-semibold text-white opacity-0 backdrop-blur-sm transition group-hover:opacity-100 group-focus:opacity-100">Ver galeria</span>
             </button>
@@ -241,7 +241,11 @@ export class AdoptionsComponent implements OnInit {
     return images.length ? images : ['https://images.unsplash.com/photo-1513360371669-4adf3dd7dff8?auto=format&fit=crop&w=900&q=80'];
   }
   mainPhoto(pet: Pet) {
-    return this.photos(pet)[0];
+    return pet.foto || this.photos(pet)[0];
+  }
+  coverIndex(pet: Pet) {
+    const index = this.photos(pet).indexOf(this.mainPhoto(pet));
+    return index >= 0 ? index : 0;
   }
   openGallery(pet: Pet, index: number) {
     const photos = this.photos(pet);

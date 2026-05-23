@@ -103,7 +103,7 @@ export class TagsComponent implements OnInit {
   }
 
   mainPhoto(pet: Pet) {
-    return pet.fotos?.[0] || pet.foto || 'https://images.unsplash.com/photo-1548199973-03cce0bbc87b?auto=format&fit=crop&w=900&q=80';
+    return pet.foto || pet.fotos?.[0] || 'https://images.unsplash.com/photo-1548199973-03cce0bbc87b?auto=format&fit=crop&w=900&q=80';
   }
 
   coverPosition(pet: Pet) {

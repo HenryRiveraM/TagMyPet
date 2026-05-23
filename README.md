@@ -338,7 +338,7 @@ Contacto oficial para activación y soporte:
 - Al crear una mascota, el dueño debe autorizar que su foto principal, datos críticos y teléfono sean visibles en el perfil público NFC.
 - Al aprobar una adopción, la mascota se transfiere al solicitante aprobado y este debe haber autorizado previamente que su teléfono sea el nuevo contacto público NFC.
 - El historial clínico completo permanece privado; el veterinario necesita autorización aprobada para acceder.
-- La portada de la mascota permite ajustar el encuadre horizontal y vertical para mostrar correctamente su cara, conservando la foto completa en la galería.
+- La portada de la mascota permite elegir cualquiera de sus hasta 5 fotos y cambiarla más adelante, además de ajustar el encuadre horizontal y vertical para mostrar correctamente su cara; la galería siempre conserva las fotos completas.
 - Para solicitar corrección o eliminación de cuenta, mascota o fotos, el usuario puede contactar al desarrollador oficial mediante el teléfono o email indicados.
 
 ## Pruebas Manuales
