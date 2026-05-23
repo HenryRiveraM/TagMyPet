@@ -5,10 +5,11 @@ import { ApiService } from '../../core/services/api.service';
 import { AuthService } from '../../core/services/auth.service';
 import { Adoption, AdoptionApplication, Pet } from '../../core/models/domain';
 import { ToastService } from '../../core/services/toast.service';
+import { PhotoGalleryView, PhotoViewerComponent } from '../../components/photo-viewer/photo-viewer.component';
 
 @Component({
   standalone: true,
-  imports: [ReactiveFormsModule, RouterLink],
+  imports: [ReactiveFormsModule, RouterLink, PhotoViewerComponent],
   template: `
     <section class="mb-6 rounded-lg border border-white/80 bg-white/80 p-6 shadow-xl shadow-slate-200/70">
       <p class="eyebrow">Hogar responsable</p>
@@ -73,9 +74,10 @@ import { ToastService } from '../../core/services/toast.service';
         }
         @for (adoption of adoptions(); track adoption._id) {
           <article class="panel grid gap-4 overflow-hidden md:grid-cols-[240px_1fr]">
-            <div class="aspect-[4/3] w-full overflow-hidden rounded-lg bg-stone-100 md:h-full">
-              <img class="h-full w-full object-cover" [style.object-position]="position(adoption.pet)" [src]="adoption.pet.foto || 'https://images.unsplash.com/photo-1513360371669-4adf3dd7dff8?auto=format&fit=crop&w=900&q=80'" [alt]="adoption.pet.nombre">
-            </div>
+            <button type="button" class="group relative aspect-[4/3] w-full overflow-hidden rounded-lg bg-stone-100 md:h-full" (click)="openGallery(adoption.pet, 0)" [attr.aria-label]="'Ver fotos de ' + adoption.pet.nombre">
+              <img class="h-full w-full object-cover transition duration-500 group-hover:scale-[1.04]" [style.object-position]="position(adoption.pet)" [src]="mainPhoto(adoption.pet)" [alt]="adoption.pet.nombre">
+              <span class="absolute inset-x-3 bottom-3 rounded-md bg-black/55 px-3 py-2 text-left text-xs font-semibold text-white opacity-0 backdrop-blur-sm transition group-hover:opacity-100 group-focus:opacity-100">Ver galeria</span>
+            </button>
             <div>
               <div class="flex flex-wrap items-start justify-between gap-3">
                 <div>
@@ -98,13 +100,13 @@ import { ToastService } from '../../core/services/toast.service';
                     <input class="field" formControlName="espacio" placeholder="Espacio disponible *">
                     <input class="field" formControlName="experiencia" placeholder="Experiencia *">
                     <input class="field" formControlName="recursos" placeholder="Recursos *">
-	                    <input class="field" formControlName="compromiso" placeholder="Compromiso *">
-	                    <input class="field md:col-span-2" formControlName="firmaDigital" placeholder="Firma digital *">
-	                    <label class="flex items-start gap-3 rounded-md border border-stone-200 bg-white p-3 text-sm text-slate-700 md:col-span-2">
-	                      <input class="mt-1" type="checkbox" formControlName="consentimientoPerfilPublico">
-	                      <span>Si soy aprobado, autorizo que mi teléfono sea el contacto público del perfil NFC de esta mascota. *</span>
-	                    </label>
-	                    <button class="btn md:col-span-2" [disabled]="applyForm.invalid">Enviar solicitud firmada</button>
+                    <input class="field" formControlName="compromiso" placeholder="Compromiso *">
+                    <input class="field md:col-span-2" formControlName="firmaDigital" placeholder="Firma digital *">
+                    <label class="flex items-start gap-3 rounded-md border border-stone-200 bg-white p-3 text-sm text-slate-700 md:col-span-2">
+                      <input class="mt-1" type="checkbox" formControlName="consentimientoPerfilPublico">
+                      <span>Si soy aprobado, autorizo que mi teléfono sea el contacto público del perfil NFC de esta mascota. *</span>
+                    </label>
+                    <button class="btn md:col-span-2" [disabled]="applyForm.invalid">Enviar solicitud firmada</button>
                   </form>
                 </details>
               }
@@ -162,6 +164,9 @@ import { ToastService } from '../../core/services/toast.service';
         }
       </section>
     }
+    @if (gallery(); as view) {
+      <app-photo-viewer [view]="view" (dismissed)="gallery.set(null)" />
+    }
   `
 })
 export class AdoptionsComponent implements OnInit {
@@ -173,15 +178,16 @@ export class AdoptionsComponent implements OnInit {
   applications = signal<AdoptionApplication[]>([]);
   pets = signal<Pet[]>([]);
   loading = signal(true);
+  gallery = signal<PhotoGalleryView | null>(null);
   filter = this.fb.nonNullable.group({ especie: [''], raza: [''], edad: [''] });
   publishForm = this.fb.nonNullable.group({ pet: ['', Validators.required], ciudad: ['', Validators.required], descripcion: ['', Validators.required] });
   applyForm = this.fb.nonNullable.group({
     espacio: ['', Validators.required],
     experiencia: ['', Validators.required],
-	    recursos: ['', Validators.required],
-	    compromiso: ['', Validators.required],
-	    firmaDigital: ['', Validators.required],
-	    consentimientoPerfilPublico: [false, Validators.requiredTrue]
+    recursos: ['', Validators.required],
+    compromiso: ['', Validators.required],
+    firmaDigital: ['', Validators.required],
+    consentimientoPerfilPublico: [false, Validators.requiredTrue]
   });
 
   ngOnInit() {
@@ -199,8 +205,8 @@ export class AdoptionsComponent implements OnInit {
   canManageAdoptions() { return ['ADMIN', 'OWNER'].includes(this.auth.user()?.rol || ''); }
   publish() { this.api.createAdoption({ ...this.publishForm.getRawValue(), requisitos: ['Seguimiento veterinario'] }).subscribe({ next: () => { this.toast.success('Publicación de adopción creada'); this.load(); this.loadApplications(); }, error: (err) => this.toast.error(err.error?.message || 'No se pudo publicar') }); }
   apply(id: string) {
-	    const { firmaDigital, consentimientoPerfilPublico, ...cuestionario } = this.applyForm.getRawValue();
-	    this.api.applyAdoption(id, { firmaDigital, consentimientoPerfilPublico, cuestionario }).subscribe({ next: () => { this.toast.success('Solicitud de adopción enviada'); this.applyForm.reset({ consentimientoPerfilPublico: false }); this.loadApplications(); }, error: (err) => this.toast.error(err.error?.message || 'No se pudo enviar la solicitud') });
+    const { firmaDigital, consentimientoPerfilPublico, ...cuestionario } = this.applyForm.getRawValue();
+    this.api.applyAdoption(id, { firmaDigital, consentimientoPerfilPublico, cuestionario }).subscribe({ next: () => { this.toast.success('Solicitud de adopción enviada'); this.applyForm.reset({ consentimientoPerfilPublico: false }); this.loadApplications(); }, error: (err) => this.toast.error(err.error?.message || 'No se pudo enviar la solicitud') });
   }
   loadApplications() {
     this.api.adoptionApplications().subscribe({ next: (applications) => this.applications.set(applications), error: () => this.toast.error('No se pudieron cargar tus solicitudes') });
@@ -219,7 +225,7 @@ export class AdoptionsComponent implements OnInit {
   }
   decide(application: AdoptionApplication, estado: 'APPROVED' | 'REJECTED') {
     const message = estado === 'APPROVED'
-	      ? 'Al aprobar, la mascota y el contacto NFC pasarán al nuevo dueño. ¿Continuar?'
+      ? 'Al aprobar, la mascota y el contacto NFC pasarán al nuevo dueño. ¿Continuar?'
       : '¿Rechazar esta solicitud?';
     if (!confirm(message)) return;
     this.api.decideAdoptionApplication(application._id, estado).subscribe({ next: () => { this.toast.success(estado === 'APPROVED' ? 'Adopción aprobada' : 'Solicitud rechazada'); this.load(); this.loadApplications(); }, error: (err) => this.toast.error(err.error?.message || 'No se pudo responder la solicitud') });
@@ -229,5 +235,16 @@ export class AdoptionsComponent implements OnInit {
   }
   position(pet: Pet) {
     return `${pet.fotoPosicionX ?? 50}% ${pet.fotoPosicionY ?? 50}%`;
+  }
+  photos(pet: Pet) {
+    const images = pet.fotos?.length ? pet.fotos : pet.foto ? [pet.foto] : [];
+    return images.length ? images : ['https://images.unsplash.com/photo-1513360371669-4adf3dd7dff8?auto=format&fit=crop&w=900&q=80'];
+  }
+  mainPhoto(pet: Pet) {
+    return this.photos(pet)[0];
+  }
+  openGallery(pet: Pet, index: number) {
+    const photos = this.photos(pet);
+    this.gallery.set({ name: pet.nombre, photos, index: Math.min(index, photos.length - 1) });
   }
 }

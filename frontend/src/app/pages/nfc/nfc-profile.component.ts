@@ -2,16 +2,17 @@ import { Component, OnInit, signal } from '@angular/core';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { ApiService } from '../../core/services/api.service';
 import { Pet, User } from '../../core/models/domain';
+import { PhotoGalleryView, PhotoViewerComponent } from '../../components/photo-viewer/photo-viewer.component';
 
 @Component({
   standalone: true,
-  imports: [RouterLink],
+  imports: [RouterLink, PhotoViewerComponent],
   template: `
     @if (pet(); as profile) {
       <section class="mx-auto max-w-4xl overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm">
         <div class="relative">
-          <button type="button" class="h-[min(65vh,560px)] min-h-[320px] w-full overflow-hidden bg-stone-100" (click)="openGallery(profile, 0)">
-            <img class="h-full w-full object-cover transition duration-300 hover:scale-[1.02]" [style.object-position]="coverPosition(profile)" [src]="mainPhoto(profile)" [alt]="profile.nombre">
+          <button type="button" class="group h-[min(65vh,560px)] min-h-[320px] w-full overflow-hidden bg-stone-100" (click)="openGallery(profile, 0)" [attr.aria-label]="'Ampliar fotos de ' + profile.nombre">
+            <img class="h-full w-full object-cover transition duration-500 group-hover:scale-[1.04]" [style.object-position]="coverPosition(profile)" [src]="mainPhoto(profile)" [alt]="profile.nombre">
           </button>
           <div class="absolute inset-x-0 bottom-0 bg-gradient-to-t from-slate-950/80 to-transparent p-6 text-white">
             <div class="flex flex-wrap items-end justify-between gap-3">
@@ -70,34 +71,7 @@ import { Pet, User } from '../../core/models/domain';
         </div>
       </section>
       @if (gallery(); as view) {
-        <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4 backdrop-blur-sm" (click)="closeGallery()">
-          <section class="relative w-full max-w-5xl rounded-lg bg-white p-4 shadow-2xl" (click)="$event.stopPropagation()">
-            <div class="mb-3 flex items-center justify-between gap-3">
-              <div>
-                <p class="text-xs font-bold uppercase tracking-widest text-slate-500">Galería</p>
-                <h2 class="text-xl font-bold">{{ view.name }}</h2>
-              </div>
-              <button type="button" class="btn-outline" (click)="closeGallery()">Cerrar</button>
-            </div>
-            <div class="flex min-h-[320px] items-center justify-center rounded-lg bg-stone-100 md:min-h-[560px]">
-              <img class="max-h-[72vh] w-full object-contain" [src]="view.photos[view.index]" [alt]="view.name">
-            </div>
-            @if (view.photos.length > 1) {
-              <div class="mt-4 flex items-center justify-between gap-3">
-                <button type="button" class="btn-outline" (click)="previousPhoto()">Anterior</button>
-                <p class="text-sm font-semibold text-slate-600">{{ view.index + 1 }} / {{ view.photos.length }}</p>
-                <button type="button" class="btn-outline" (click)="nextPhoto()">Siguiente</button>
-              </div>
-              <div class="mt-3 grid grid-cols-5 gap-2 sm:grid-cols-6 md:grid-cols-8">
-                @for (photo of view.photos; track photo; let i = $index) {
-                  <button type="button" class="overflow-hidden rounded-md bg-stone-100 ring-offset-2 transition" [class.ring-4]="i === view.index" [class.ring-brand]="i === view.index" (click)="setPhoto(i)">
-                    <img class="aspect-square w-full object-contain" [src]="photo" [alt]="view.name + ' miniatura ' + (i + 1)">
-                  </button>
-                }
-              </div>
-            }
-          </section>
-        </div>
+        <app-photo-viewer [view]="view" (dismissed)="closeGallery()" />
       }
     } @else {
       <section class="mx-auto max-w-2xl rounded-lg border border-stone-200 bg-white p-8 text-center shadow-sm">
@@ -114,7 +88,7 @@ import { Pet, User } from '../../core/models/domain';
 })
 export class NfcProfileComponent implements OnInit {
   pet = signal<(Partial<Pet> & { contacto: User }) | null>(null);
-  gallery = signal<{ name: string; photos: string[]; index: number } | null>(null);
+  gallery = signal<PhotoGalleryView | null>(null);
   constructor(private route: ActivatedRoute, private api: ApiService) {}
   ngOnInit() {
     const code = this.route.snapshot.paramMap.get('nfcCode') || '';
@@ -145,19 +119,4 @@ export class NfcProfileComponent implements OnInit {
     this.gallery.set({ name: profile.nombre || 'Mascota', photos, index: Math.min(index, photos.length - 1) });
   }
   closeGallery() { this.gallery.set(null); }
-  setPhoto(index: number) {
-    const view = this.gallery();
-    if (!view) return;
-    this.gallery.set({ ...view, index });
-  }
-  previousPhoto() {
-    const view = this.gallery();
-    if (!view) return;
-    this.gallery.set({ ...view, index: (view.index - 1 + view.photos.length) % view.photos.length });
-  }
-  nextPhoto() {
-    const view = this.gallery();
-    if (!view) return;
-    this.gallery.set({ ...view, index: (view.index + 1) % view.photos.length });
-  }
 }

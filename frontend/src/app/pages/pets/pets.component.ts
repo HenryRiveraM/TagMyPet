@@ -4,10 +4,11 @@ import { RouterLink } from '@angular/router';
 import { ApiService } from '../../core/services/api.service';
 import { Pet } from '../../core/models/domain';
 import { ToastService } from '../../core/services/toast.service';
+import { PhotoGalleryView, PhotoViewerComponent } from '../../components/photo-viewer/photo-viewer.component';
 
 @Component({
   standalone: true,
-  imports: [ReactiveFormsModule, RouterLink],
+  imports: [ReactiveFormsModule, RouterLink, PhotoViewerComponent],
   template: `
     <div class="grid gap-6 lg:grid-cols-[380px_1fr]">
       <section class="panel h-fit lg:sticky lg:top-28">
@@ -89,8 +90,9 @@ import { ToastService } from '../../core/services/toast.service';
         }
         @for (pet of pets(); track pet._id) {
           <article class="panel overflow-hidden p-0">
-            <button type="button" class="flex aspect-[4/3] w-full items-center justify-center bg-stone-100" (click)="openGallery(pet, 0)">
-              <img class="h-full w-full object-cover transition duration-300 hover:scale-[1.02]" [style.object-position]="coverPosition(pet)" [src]="mainPhoto(pet)" [alt]="pet.nombre">
+            <button type="button" class="group relative flex aspect-[4/3] w-full items-center justify-center bg-stone-100" (click)="openGallery(pet, 0)" [attr.aria-label]="'Ampliar fotos de ' + pet.nombre">
+              <img class="h-full w-full object-cover transition duration-500 group-hover:scale-[1.04]" [style.object-position]="coverPosition(pet)" [src]="mainPhoto(pet)" [alt]="pet.nombre">
+              <span class="absolute bottom-3 right-3 rounded-full bg-black/55 px-3 py-1.5 text-xs font-semibold text-white opacity-0 backdrop-blur-sm transition group-hover:opacity-100 group-focus:opacity-100">Ampliar</span>
             </button>
             <div class="p-5">
             <div class="flex items-start justify-between gap-3">
@@ -131,34 +133,7 @@ import { ToastService } from '../../core/services/toast.service';
     </div>
 
     @if (gallery(); as view) {
-      <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4 backdrop-blur-sm" (click)="closeGallery()">
-        <section class="relative w-full max-w-5xl rounded-lg bg-white p-4 shadow-2xl" (click)="$event.stopPropagation()">
-          <div class="mb-3 flex items-center justify-between gap-3">
-            <div>
-              <p class="text-xs font-bold uppercase tracking-widest text-slate-500">Galería</p>
-              <h2 class="text-xl font-bold">{{ view.name }}</h2>
-            </div>
-            <button type="button" class="btn-outline" (click)="closeGallery()">Cerrar</button>
-          </div>
-          <div class="flex min-h-[320px] items-center justify-center rounded-lg bg-stone-100 md:min-h-[560px]">
-            <img class="max-h-[72vh] w-full object-contain" [src]="view.photos[view.index]" [alt]="view.name">
-          </div>
-          @if (view.photos.length > 1) {
-            <div class="mt-4 flex items-center justify-between gap-3">
-              <button type="button" class="btn-outline" (click)="previousPhoto()">Anterior</button>
-              <p class="text-sm font-semibold text-slate-600">{{ view.index + 1 }} / {{ view.photos.length }}</p>
-              <button type="button" class="btn-outline" (click)="nextPhoto()">Siguiente</button>
-            </div>
-            <div class="mt-3 grid grid-cols-5 gap-2 sm:grid-cols-6 md:grid-cols-8">
-              @for (photo of view.photos; track photo; let i = $index) {
-                <button type="button" class="overflow-hidden rounded-md bg-stone-100 ring-offset-2 transition" [class.ring-4]="i === view.index" [class.ring-brand]="i === view.index" (click)="setPhoto(i)">
-                  <img class="aspect-square w-full object-contain" [src]="photo" [alt]="view.name + ' miniatura ' + (i + 1)">
-                </button>
-              }
-            </div>
-          }
-        </section>
-      </div>
+      <app-photo-viewer [view]="view" (dismissed)="closeGallery()" />
     }
   `
 })
@@ -174,7 +149,7 @@ export class PetsComponent implements OnInit {
   loading = signal(true);
   editingId = signal<string | null>(null);
   previewPhoto = signal<string | null>(null);
-  gallery = signal<{ name: string; photos: string[]; index: number } | null>(null);
+  gallery = signal<PhotoGalleryView | null>(null);
   files: File[] = [];
   private localPreviewUrl: string | null = null;
   form = this.fb.nonNullable.group({
@@ -318,24 +293,6 @@ export class PetsComponent implements OnInit {
   }
 
   closeGallery() { this.gallery.set(null); }
-
-  setPhoto(index: number) {
-    const view = this.gallery();
-    if (!view) return;
-    this.gallery.set({ ...view, index });
-  }
-
-  previousPhoto() {
-    const view = this.gallery();
-    if (!view) return;
-    this.gallery.set({ ...view, index: (view.index - 1 + view.photos.length) % view.photos.length });
-  }
-
-  nextPhoto() {
-    const view = this.gallery();
-    if (!view) return;
-    this.gallery.set({ ...view, index: (view.index + 1) % view.photos.length });
-  }
 
   copyText(value: string, message: string) {
     navigator.clipboard?.writeText(value);

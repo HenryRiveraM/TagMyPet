@@ -4,10 +4,11 @@ import { ApiService } from '../../core/services/api.service';
 import { AuthService } from '../../core/services/auth.service';
 import { LostReport, Pet } from '../../core/models/domain';
 import { ToastService } from '../../core/services/toast.service';
+import { PhotoGalleryView, PhotoViewerComponent } from '../../components/photo-viewer/photo-viewer.component';
 
 @Component({
   standalone: true,
-  imports: [ReactiveFormsModule],
+  imports: [ReactiveFormsModule, PhotoViewerComponent],
   template: `
     <section class="mb-6 flex flex-col justify-between gap-4 md:flex-row">
       <div>
@@ -65,10 +66,11 @@ import { ToastService } from '../../core/services/toast.service';
         }
         @for (report of reports(); track report._id) {
           <article class="panel">
-            <button type="button" class="mb-4 block w-full overflow-hidden rounded-md bg-stone-100 text-left" (click)="openGallery(report.pet, 0)">
+            <button type="button" class="group relative mb-4 block w-full overflow-hidden rounded-md bg-stone-100 text-left" (click)="openGallery(report.pet, 0)" [attr.aria-label]="'Ampliar fotos de ' + report.pet.nombre">
               <span class="flex aspect-[4/3] w-full items-center justify-center">
-                <img class="h-full w-full object-cover transition duration-300 hover:scale-[1.02]" [style.object-position]="coverPosition(report.pet)" [src]="mainPhoto(report.pet)" [alt]="report.pet.nombre">
+                <img class="h-full w-full object-cover transition duration-500 group-hover:scale-[1.04]" [style.object-position]="coverPosition(report.pet)" [src]="mainPhoto(report.pet)" [alt]="report.pet.nombre">
               </span>
+              <span class="absolute bottom-3 right-3 rounded-full bg-black/55 px-3 py-1.5 text-xs font-semibold text-white opacity-0 backdrop-blur-sm transition group-hover:opacity-100 group-focus:opacity-100">Ampliar</span>
             </button>
             @if ((photos(report.pet).length || 0) > 1) {
               <div class="mb-4 grid grid-cols-5 gap-2">
@@ -97,34 +99,7 @@ import { ToastService } from '../../core/services/toast.service';
     </div>
 
     @if (gallery(); as view) {
-      <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4 backdrop-blur-sm" (click)="closeGallery()">
-        <section class="relative w-full max-w-5xl rounded-lg bg-white p-4 shadow-2xl" (click)="$event.stopPropagation()">
-          <div class="mb-3 flex items-center justify-between gap-3">
-            <div>
-              <p class="text-xs font-bold uppercase tracking-widest text-slate-500">Galería</p>
-              <h2 class="text-xl font-bold">{{ view.name }}</h2>
-            </div>
-            <button type="button" class="btn-outline" (click)="closeGallery()">Cerrar</button>
-          </div>
-          <div class="flex min-h-[320px] items-center justify-center rounded-lg bg-stone-100 md:min-h-[560px]">
-            <img class="max-h-[72vh] w-full object-contain" [src]="view.photos[view.index]" [alt]="view.name">
-          </div>
-          @if (view.photos.length > 1) {
-            <div class="mt-4 flex items-center justify-between gap-3">
-              <button type="button" class="btn-outline" (click)="previousPhoto()">Anterior</button>
-              <p class="text-sm font-semibold text-slate-600">{{ view.index + 1 }} / {{ view.photos.length }}</p>
-              <button type="button" class="btn-outline" (click)="nextPhoto()">Siguiente</button>
-            </div>
-            <div class="mt-3 grid grid-cols-5 gap-2 sm:grid-cols-6 md:grid-cols-8">
-              @for (photo of view.photos; track photo; let i = $index) {
-                <button type="button" class="overflow-hidden rounded-md bg-stone-100 ring-offset-2 transition" [class.ring-4]="i === view.index" [class.ring-brand]="i === view.index" (click)="setPhoto(i)">
-                  <img class="aspect-square w-full object-contain" [src]="photo" [alt]="view.name + ' miniatura ' + (i + 1)">
-                </button>
-              }
-            </div>
-          }
-        </section>
-      </div>
+      <app-photo-viewer [view]="view" (dismissed)="closeGallery()" />
     }
   `
 })
@@ -137,7 +112,7 @@ export class LostComponent implements OnInit {
   pets = signal<Pet[]>([]);
   loading = signal(true);
   ownedPetIds = signal<Set<string>>(new Set());
-  gallery = signal<{ name: string; photos: string[]; index: number } | null>(null);
+  gallery = signal<PhotoGalleryView | null>(null);
   cities = ['La Paz', 'Cochabamba', 'Santa Cruz', 'Oruro', 'Potosí', 'Chuquisaca', 'Tarija', 'Beni', 'Pando'];
   filter = this.fb.nonNullable.group({ texto: [''], ciudad: [''], especie: [''], raza: [''] });
   form = this.fb.nonNullable.group({
@@ -183,19 +158,4 @@ export class LostComponent implements OnInit {
     this.gallery.set({ name: pet.nombre, photos, index: Math.min(index, photos.length - 1) });
   }
   closeGallery() { this.gallery.set(null); }
-  setPhoto(index: number) {
-    const view = this.gallery();
-    if (!view) return;
-    this.gallery.set({ ...view, index });
-  }
-  previousPhoto() {
-    const view = this.gallery();
-    if (!view) return;
-    this.gallery.set({ ...view, index: (view.index - 1 + view.photos.length) % view.photos.length });
-  }
-  nextPhoto() {
-    const view = this.gallery();
-    if (!view) return;
-    this.gallery.set({ ...view, index: (view.index + 1) % view.photos.length });
-  }
 }
