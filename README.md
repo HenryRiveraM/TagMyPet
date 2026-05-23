@@ -171,11 +171,12 @@ Adopciones:
 - `PATCH /api/adoptions/applications/:id/status`
 - `PATCH /api/adoptions/:id/close`
 
-Premium manual:
+Premium anual por QR:
 
 - `GET /api/premium/me`
-- `POST /api/premium`
+- `POST /api/premium` (`multipart/form-data`: `paymentReference`, `notes`, `receipt` PDF)
 - `GET /api/premium` (`ADMIN`)
+- `GET /api/premium/:id/receipt` (`ADMIN`, enlace firmado temporal)
 - `PATCH /api/premium/:id/status` (`ADMIN`)
 
 Admin:
@@ -322,11 +323,13 @@ Frontend en Netlify:
 
 ## Plan Premium
 
-- Precio: `70 Bs/mes`.
-- El dueño coordina el pago con TagMyPet y registra su referencia desde el dashboard.
-- El administrador revisa la referencia en el panel admin y aprueba o rechaza la solicitud.
-- Al aprobar, el usuario pasa a plan `PREMIUM`.
-- Este MVP no procesa tarjetas, débitos automáticos ni pasarelas de pago; la verificación es manual.
+- Precio: `840 Bs/año`, equivalente a `70 Bs/mes`.
+- El dueño abre `Premium`, paga mediante el QR BCP y sube su comprobante obligatorio en PDF.
+- El comprobante se carga como archivo privado en Cloudinary; el administrador lo abre mediante enlace firmado temporal de 5 minutos y aprueba o rechaza la solicitud.
+- Al aprobar, el usuario pasa a plan `PREMIUM` por 12 meses desde la fecha de aprobación.
+- Si vence la vigencia, el backend devuelve automáticamente la cuenta al plan `FREE` en su siguiente sesión o uso autenticado.
+- El QR actual es de monto abierto: el usuario debe introducir `840 Bs` y reemplazarse antes de su vencimiento visible, `23/05/2027`.
+- TagMyPet no procesa tarjetas ni débitos automáticos; el pago y su verificación son manuales.
 
 Contacto oficial para activación y soporte:
 
@@ -338,6 +341,7 @@ Contacto oficial para activación y soporte:
 - Al crear una mascota, el dueño debe autorizar que su foto principal, datos críticos y teléfono sean visibles en el perfil público NFC.
 - Al aprobar una adopción, la mascota se transfiere al solicitante aprobado y este debe haber autorizado previamente que su teléfono sea el nuevo contacto público NFC.
 - El historial clínico completo permanece privado; el veterinario necesita autorización aprobada para acceder.
+- Los comprobantes bancarios Premium se conservan de forma privada y solo administración obtiene acceso temporal para verificación.
 - La portada de la mascota permite elegir cualquiera de sus hasta 5 fotos y cambiarla más adelante, además de ajustar el encuadre horizontal y vertical para mostrar correctamente su cara; la galería siempre conserva las fotos completas.
 - Para solicitar corrección o eliminación de cuenta, mascota o fotos, el usuario puede contactar al desarrollador oficial mediante el teléfono o email indicados.
 
@@ -356,7 +360,8 @@ Contacto oficial para activación y soporte:
 11. Crear una clínica desde veterinario y aprobarla desde admin, o revisar la clínica oficial del seed.
 12. Solicitar acceso médico con el código NFC de una mascota y aprobarlo desde dueño/admin.
 13. Login con `admin@tagmypet.com` y abrir `Tags NFC` para crear lote y asignar tags.
-14. Desde una cuenta FREE enviar solicitud Premium con referencia y aprobarla desde admin.
+14. Desde una cuenta FREE abrir `Premium`, escanear el QR, adjuntar un PDF de comprobante y enviar la solicitud.
+15. Desde admin abrir el PDF protegido, aprobarla y verificar que el usuario muestre vigencia Premium por 12 meses.
 
 ## Guion de Demo Recomendado
 

@@ -1,3 +1,4 @@
+import { DatePipe } from '@angular/common';
 import { Component, OnInit, signal } from '@angular/core';
 import { ApiService } from '../../core/services/api.service';
 import { Clinic, PremiumRequest, User } from '../../core/models/domain';
@@ -5,6 +6,7 @@ import { ToastService } from '../../core/services/toast.service';
 
 @Component({
   standalone: true,
+  imports: [DatePipe],
   template: `
     <section class="mb-6 overflow-hidden rounded-lg border border-white/80 bg-slate-950 p-6 text-white shadow-xl shadow-slate-300/50 md:p-8">
       <p class="eyebrow text-stone-200">Operación</p>
@@ -87,7 +89,7 @@ import { ToastService } from '../../core/services/toast.service';
         <div>
           <p class="eyebrow">Planes Premium</p>
           <h2 class="mt-2 text-xl font-bold">Pagos por verificar</h2>
-          <p class="mt-2 text-sm text-slate-600">Premium se activa solo después de revisar la referencia de pago de 70 Bs/mes.</p>
+          <p class="mt-2 text-sm text-slate-600">Premium anual: 840 Bs por QR. Abre el comprobante PDF protegido antes de aprobar 12 meses de acceso.</p>
         </div>
         <span class="badge">{{ pendingPremium().length }} pendientes</span>
       </div>
@@ -101,14 +103,21 @@ import { ToastService } from '../../core/services/toast.service';
                 <div>
                   <p class="font-bold">{{ request.user?.nombre }} {{ request.user?.apellido }}</p>
                   <p class="mt-1 text-xs text-slate-500">{{ request.user?.email }}</p>
-                  <p class="mt-3 text-sm text-slate-700"><strong>Referencia:</strong> {{ request.paymentReference }}</p>
+                  <p class="mt-3 text-sm text-slate-700"><strong>Importe:</strong> {{ request.price }} {{ request.currency }} / {{ request.durationMonths || 12 }} meses</p>
+                  <p class="mt-1 text-sm text-slate-700"><strong>Referencia:</strong> {{ request.paymentReference }}</p>
                   @if (request.notes) { <p class="mt-1 text-sm text-slate-600">{{ request.notes }}</p> }
+                  @if (request.expiresAt) { <p class="mt-2 text-xs font-semibold text-emerald-700">Vigente hasta {{ request.expiresAt | date:'longDate' }}</p> }
                 </div>
                 <span class="badge">{{ request.status }}</span>
               </div>
+              @if (request.receipt?.originalName) {
+                <button class="btn-outline mt-4 w-full" (click)="viewReceipt(request)">Abrir comprobante PDF</button>
+              } @else {
+                <p class="mt-4 rounded-md border border-amber-200 bg-amber-50 p-3 text-xs text-amber-800">Solicitud anterior sin PDF adjunto.</p>
+              }
               @if (request.status === 'PENDING') {
                 <div class="mt-4 flex gap-2">
-                  <button class="btn" (click)="decidePremium(request, 'APPROVED')">Activar Premium</button>
+                  <button class="btn" [disabled]="!request.receipt?.originalName" (click)="decidePremium(request, 'APPROVED')">Activar 12 meses</button>
                   <button class="btn-outline" (click)="decidePremium(request, 'REJECTED')">Rechazar</button>
                 </div>
               }
@@ -184,8 +193,21 @@ export class AdminComponent implements OnInit {
   updateClinic(clinic: Clinic, estado: 'ACTIVE' | 'SUSPENDED') {
     this.api.updateClinicStatus(clinic._id, estado).subscribe({ next: () => { this.toast.success(estado === 'ACTIVE' ? 'Clínica aprobada' : 'Clínica suspendida'); this.load(); }, error: (err) => this.toast.error(err.error?.message || 'No se pudo actualizar la clínica') });
   }
+  viewReceipt(request: PremiumRequest) {
+    const preview = window.open('', '_blank');
+    this.api.premiumReceiptLink(request._id).subscribe({
+      next: ({ url }) => {
+        if (preview) preview.location.href = url;
+        else window.open(url, '_blank', 'noopener');
+      },
+      error: (err) => {
+        preview?.close();
+        this.toast.error(err.error?.message || 'No se pudo abrir el comprobante');
+      }
+    });
+  }
   decidePremium(request: PremiumRequest, status: 'APPROVED' | 'REJECTED') {
-    if (!confirm(status === 'APPROVED' ? '¿Confirmas que verificaste el pago y deseas activar Premium?' : '¿Rechazar esta solicitud Premium?')) return;
+    if (!confirm(status === 'APPROVED' ? '¿Confirmas que verificaste el PDF y el pago de 840 Bs? Se activarán 12 meses Premium.' : '¿Rechazar esta solicitud Premium?')) return;
     this.api.decidePremiumRequest(request._id, status).subscribe({
       next: () => { this.toast.success(status === 'APPROVED' ? 'Premium activado' : 'Solicitud rechazada'); this.load(); },
       error: (err) => this.toast.error(err.error?.message || 'No se pudo procesar la solicitud')

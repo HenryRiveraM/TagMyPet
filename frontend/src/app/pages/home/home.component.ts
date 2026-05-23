@@ -78,8 +78,8 @@ import { AuthService } from '../../core/services/auth.service';
               <p class="mt-1 text-sm text-stone-300">Para dueños que quieren gestión completa.</p>
             </div>
             <div class="text-right">
-              <p class="text-4xl font-bold">70 Bs</p>
-              <p class="mt-1 text-sm text-stone-300">/ mes</p>
+              <p class="text-4xl font-bold">840 Bs</p>
+              <p class="mt-1 text-sm text-stone-300">/ año · 70 Bs/mes</p>
             </div>
           </div>
           <ul class="relative mt-6 space-y-3 text-sm text-stone-100">
@@ -87,8 +87,8 @@ import { AuthService } from '../../core/services/auth.service';
               <li class="flex gap-3"><span class="mt-1 h-2 w-2 shrink-0 rounded-full bg-gold"></span><span>{{ item }}</span></li>
             }
           </ul>
-          <a routerLink="/register" class="mt-6 inline-flex min-h-10 w-full items-center justify-center rounded-md bg-white px-4 py-2 text-sm font-bold text-slate-950 shadow-sm transition hover:-translate-y-0.5 hover:bg-stone-100">Crear cuenta y solicitar Premium</a>
-          <p class="relative mt-3 text-center text-xs text-stone-300">Activación manual después de verificar el pago.</p>
+          <a routerLink="/register" class="mt-6 inline-flex min-h-10 w-full items-center justify-center rounded-md bg-white px-4 py-2 text-sm font-bold text-slate-950 shadow-sm transition hover:-translate-y-0.5 hover:bg-stone-100">Crear cuenta y pagar con QR</a>
+          <p class="relative mt-3 text-center text-xs text-stone-300">Activación anual al verificar el comprobante PDF.</p>
         </article>
       </div>
     </section>
@@ -170,7 +170,7 @@ export class HomeComponent implements OnInit {
     'Hasta 5 fotos por mascota',
     'Gestión de adopciones y reportes perdidos',
     'Acceso veterinario autorizado por mascota',
-    'Activación manual con comprobante verificado'
+    'Activación anual por QR con comprobante PDF'
   ];
 
   steps = [
@@ -187,7 +187,7 @@ export class HomeComponent implements OnInit {
   faqs = [
     { q: '¿Qué ve alguien al escanear el NFC?', a: 'Solo el perfil público: foto, nombre, datos críticos y formas de contacto. No se expone el historial completo.' },
     { q: '¿Puedo usarlo sin sensor NFC en la computadora?', a: 'Sí. Copias el link público y lo grabas en el collar con NFC Tools desde un celular compatible.' },
-    { q: '¿Qué incluye Premium?', a: 'Por 70 Bs al mes incluye mascotas ilimitadas, historial completo, recordatorios, más fotos, reportes perdidos, adopciones y acceso veterinario autorizado. Su activación se verifica manualmente.' },
+    { q: '¿Qué incluye Premium?', a: 'Por 840 Bs al año, equivalente a 70 Bs al mes, incluye mascotas ilimitadas, historial completo, recordatorios, más fotos, reportes perdidos, adopciones y acceso veterinario autorizado. Pagas por QR y el admin valida tu PDF.' },
     { q: '¿Quién aprueba clínicas?', a: 'El admin revisa y aprueba clínicas para que puedan operar como veterinarias oficiales dentro de TagMyPet.' }
   ];
 }

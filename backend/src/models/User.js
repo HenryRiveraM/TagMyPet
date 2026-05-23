@@ -14,6 +14,8 @@ const userSchema = new mongoose.Schema({
   rol: { type: String, enum: roles, default: 'OWNER' },
   estado: { type: String, enum: ['ACTIVE', 'SUSPENDED'], default: 'ACTIVE' },
   plan: { type: String, enum: ['FREE', 'PREMIUM'], default: 'FREE' },
+  premiumStartedAt: { type: Date },
+  premiumExpiresAt: { type: Date },
   emailVerified: { type: Boolean, default: false },
   emailVerificationToken: { type: String, select: false },
   emailVerificationExpires: { type: Date, select: false },

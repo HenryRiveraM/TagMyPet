@@ -60,7 +60,8 @@ export class ApiService {
   exportTagsCsv() { return this.http.get(`${this.api}/tags/export.csv`, { observe: 'response', responseType: 'blob' }); }
   sendReminderNotifications(daysAhead = 2) { return this.http.post<{ sent: number }>(`${this.api}/reminders/send-notifications?daysAhead=${daysAhead}`, {}); }
   myPremiumRequests() { return this.http.get<PremiumRequest[]>(`${this.api}/premium/me`); }
-  requestPremium(data: object) { return this.http.post<PremiumRequest>(`${this.api}/premium`, data); }
+  requestPremium(data: FormData) { return this.http.post<PremiumRequest>(`${this.api}/premium`, data); }
   premiumRequests() { return this.http.get<PremiumRequest[]>(`${this.api}/premium`); }
+  premiumReceiptLink(id: string) { return this.http.get<{ url: string; expiresInSeconds: number }>(`${this.api}/premium/${id}/receipt`); }
   decidePremiumRequest(id: string, status: 'APPROVED' | 'REJECTED') { return this.http.patch<PremiumRequest>(`${this.api}/premium/${id}/status`, { status }); }
 }

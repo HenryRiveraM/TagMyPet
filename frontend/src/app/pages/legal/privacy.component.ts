@@ -33,7 +33,8 @@ import { Component } from '@angular/core';
 })
 export class PrivacyComponent {
   items = [
-    { title: 'Datos que tratamos', text: 'Nombre, email, teléfono, ciudad, rol, mascotas, fotos, información de salud registrada, reportes, adopciones, clínicas y solicitudes de plan Premium.' },
+    { title: 'Datos que tratamos', text: 'Nombre, email, teléfono, ciudad, rol, mascotas, fotos, información de salud registrada, reportes, adopciones, clínicas y solicitudes de plan Premium, incluido el comprobante PDF de pago cuando el usuario solicita activación.' },
+    { title: 'Comprobantes Premium', text: 'El comprobante bancario se almacena de forma privada y el sistema entrega a administración un enlace temporal de revisión para verificar el pago. Ese enlace no debe compartirse. El PDF no se publica en perfiles ni listados.' },
     { title: 'Finalidad', text: 'Usamos los datos para identificar mascotas, facilitar contactos de emergencia, gestionar historiales autorizados, adopciones, clínicas, recordatorios y soporte.' },
     { title: 'Consentimiento NFC público', text: 'Al registrar una mascota y activar su collar, el dueño acepta que sus fotos, nombre, datos críticos y teléfono de contacto se publiquen en el perfil NFC para emergencias.' },
     { title: 'Datos privados y permisos', text: 'El historial completo y la gestión interna requieren sesión. Un veterinario solo puede acceder a una mascota con autorización aprobada por el dueño o admin.' },

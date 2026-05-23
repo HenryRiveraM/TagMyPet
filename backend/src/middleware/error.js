@@ -5,9 +5,14 @@ export function notFound(req, _res, next) {
 }
 
 export function errorHandler(err, _req, res, _next) {
-  const status = err.statusCode || 500;
+  const uploadLimitError = String(err.code || '').startsWith('LIMIT_');
+  const status = uploadLimitError ? 400 : err.statusCode || 500;
   const payload = {
-    message: status === 500 ? 'Error interno del servidor' : err.message
+    message: status === 500
+      ? 'Error interno del servidor'
+      : err.code === 'LIMIT_FILE_SIZE'
+        ? 'El archivo supera el límite permitido de 5 MB'
+        : err.message
   };
 
   if (process.env.NODE_ENV !== 'production') {

@@ -8,6 +8,10 @@ import { PremiumRequest } from '../models/PremiumRequest.js';
 import { asyncHandler } from '../utils/asyncHandler.js';
 
 export const stats = asyncHandler(async (_req, res) => {
+  await User.updateMany(
+    { plan: 'PREMIUM', premiumExpiresAt: { $lte: new Date() } },
+    { $set: { plan: 'FREE' }, $unset: { premiumStartedAt: '', premiumExpiresAt: '' } }
+  );
   const [users, pets, lost, adoptions, premium, clinics, tags, pendingPremium] = await Promise.all([
     User.countDocuments(),
     Pet.countDocuments(),

@@ -5,6 +5,7 @@ import { asyncHandler } from '../utils/asyncHandler.js';
 import { sendEmail } from '../utils/email.js';
 import { signToken } from '../utils/token.js';
 import { frontendUrl } from '../utils/url.js';
+import { expirePremiumIfNeeded } from '../utils/premium.js';
 
 const publicUser = (user) => ({
   id: user._id,
@@ -16,6 +17,8 @@ const publicUser = (user) => ({
   rol: user.rol,
   estado: user.estado,
   plan: user.plan,
+  premiumStartedAt: user.premiumStartedAt,
+  premiumExpiresAt: user.premiumExpiresAt,
   emailVerified: user.emailVerified
 });
 
@@ -46,6 +49,7 @@ export const login = asyncHandler(async (req, res) => {
     throw new ApiError('Credenciales inválidas', 401);
   }
   if (user.estado !== 'ACTIVE') throw new ApiError('Usuario suspendido', 403);
+  await expirePremiumIfNeeded(user);
 
   res.json({ token: signToken(user), user: publicUser(user) });
 });

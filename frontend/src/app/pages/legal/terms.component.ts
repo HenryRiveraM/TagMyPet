@@ -29,7 +29,7 @@ export class TermsComponent {
     { title: 'Perfil NFC y consentimiento', text: 'Al crear el perfil público y grabar el collar, el dueño autoriza la exhibición de fotos, teléfono y datos críticos necesarios para identificar o auxiliar a la mascota. Puede desactivarlo eliminando la mascota o solicitando soporte.' },
     { title: 'Uso veterinario', text: 'Las clínicas deben ser aprobadas por administración. Un veterinario solo registra o consulta información médica de mascotas cuando existe autorización activa del propietario.' },
     { title: 'Reportes y adopciones', text: 'Los reportes de pérdida y postulaciones deben ser verídicos. Al aprobar una adopción, la mascota pasa al nuevo responsable y su teléfono se publica en el NFC solo porque lo autorizó al postular.' },
-    { title: 'Planes y activación Premium', text: 'Free incluye funciones básicas y hasta 2 mascotas. Premium cuesta 70 Bs al mes y se activa tras verificación manual del pago enviado por el usuario. La plataforma no procesa tarjetas ni débitos automáticos.' },
+    { title: 'Planes y activación Premium', text: 'Free incluye funciones básicas y hasta 2 mascotas. Premium se contrata por 840 Bs durante 12 meses (equivalente a 70 Bs/mes), pagados mediante QR boliviano. El periodo empieza cuando el administrador valida el comprobante PDF y finaliza automáticamente al cumplirse la vigencia. La plataforma no procesa tarjetas ni débitos automáticos.' },
     { title: 'Eliminación de cuenta', text: 'El usuario puede pedir baja de cuenta y eliminación de sus datos mediante el contacto oficial. Podremos conservar registros mínimos cuando sean necesarios para atender solicitudes o proteger la seguridad del servicio.' }
   ];
 }

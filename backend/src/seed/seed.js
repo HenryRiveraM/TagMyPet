@@ -28,9 +28,13 @@ await Promise.all([
   NfcTag.deleteMany()
 ]);
 
+const demoPremiumStartedAt = new Date();
+const demoPremiumExpiresAt = new Date();
+demoPremiumExpiresAt.setFullYear(demoPremiumExpiresAt.getFullYear() + 1);
+
 const [admin, owner, vet] = await User.create([
   { nombre: 'Admin', apellido: 'TagMyPet', email: 'admin@tagmypet.com', password: 'Password123', rol: 'ADMIN', ciudad: 'La Paz', telefono: '+59170000001', plan: 'PREMIUM', emailVerified: true },
-  { nombre: 'Lucia', apellido: 'Rojas', email: 'owner@tagmypet.com', password: 'Password123', rol: 'OWNER', ciudad: 'La Paz', telefono: '+59170000002', plan: 'PREMIUM', emailVerified: true },
+  { nombre: 'Lucia', apellido: 'Rojas', email: 'owner@tagmypet.com', password: 'Password123', rol: 'OWNER', ciudad: 'La Paz', telefono: '+59170000002', plan: 'PREMIUM', premiumStartedAt: demoPremiumStartedAt, premiumExpiresAt: demoPremiumExpiresAt, emailVerified: true },
   { nombre: 'Mateo', apellido: 'Vargas', email: 'vet@tagmypet.com', password: 'Password123', rol: 'VETERINARIO', ciudad: 'Cochabamba', telefono: '+59170000003', emailVerified: true }
 ]);
 

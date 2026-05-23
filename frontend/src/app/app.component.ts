@@ -21,6 +21,7 @@ import { ToastService } from './core/services/toast.service';
             <a routerLink="/dashboard" class="btn-outline">Dashboard</a>
             @if (can(['ADMIN', 'OWNER', 'VETERINARIO'])) { <a routerLink="/historial" class="btn-outline">Historial</a> }
             @if (can(['ADMIN', 'OWNER'])) { <a routerLink="/recordatorios" class="btn-outline">Recordatorios</a> }
+            @if (can(['OWNER'])) { <a routerLink="/premium" class="btn-outline">Premium</a> }
             @if (can(['ADMIN', 'OWNER', 'VETERINARIO'])) { <a routerLink="/clinicas" class="btn-outline">Clínicas</a> }
             @if (can(['ADMIN'])) { <a routerLink="/admin" class="btn-outline">Admin</a> }
             <button class="btn" (click)="auth.logout()">Salir</button>

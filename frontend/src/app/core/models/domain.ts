@@ -11,6 +11,8 @@ export interface User {
   rol: Role;
   estado?: 'ACTIVE' | 'SUSPENDED';
   plan?: 'FREE' | 'PREMIUM';
+  premiumStartedAt?: string;
+  premiumExpiresAt?: string;
   emailVerified?: boolean;
 }
 
@@ -75,11 +77,19 @@ export interface PremiumRequest {
   _id: string;
   user?: User;
   plan: 'PREMIUM';
+  billingPeriod?: 'YEARLY';
+  durationMonths?: number;
   price: number;
   currency: string;
   paymentReference: string;
+  receipt?: {
+    originalName?: string;
+    bytes?: number;
+  };
   notes?: string;
   status: 'PENDING' | 'APPROVED' | 'REJECTED';
+  activatedAt?: string;
+  expiresAt?: string;
   createdAt?: string;
 }
 
