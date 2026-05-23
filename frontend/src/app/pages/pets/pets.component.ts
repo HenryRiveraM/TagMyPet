@@ -43,6 +43,30 @@ import { ToastService } from '../../core/services/toast.service';
             <span class="mb-1.5 block text-sm font-semibold text-slate-700">Fotos de la mascota (máximo 5)</span>
             <input #fileInput class="field" type="file" accept="image/*" multiple (change)="pickFiles($event)">
           </label>
+          @if (previewPhoto(); as preview) {
+            <section class="rounded-lg border border-stone-200 bg-stone-50 p-3">
+              <div class="flex items-center justify-between gap-3">
+                <p class="text-sm font-bold text-slate-900">Encuadre de portada</p>
+                <span class="text-xs text-slate-500">Arrastra los controles</span>
+              </div>
+              <p class="mt-1 text-xs leading-5 text-slate-600">Acomoda la cara de tu mascota. La foto completa seguirá visible en la galería.</p>
+              <div class="mt-3 aspect-[4/3] overflow-hidden rounded-md bg-stone-200">
+                <img class="h-full w-full object-cover" [style.object-position]="previewPosition()" [src]="preview" alt="Vista previa de portada">
+              </div>
+              <label class="mt-3 block text-xs font-semibold text-slate-600">
+                Horizontal
+                <input class="mt-1 w-full accent-slate-950" type="range" min="0" max="100" formControlName="fotoPosicionX">
+              </label>
+              <label class="mt-2 block text-xs font-semibold text-slate-600">
+                Vertical
+                <input class="mt-1 w-full accent-slate-950" type="range" min="0" max="100" formControlName="fotoPosicionY">
+              </label>
+            </section>
+          }
+          <label class="flex items-start gap-3 rounded-md border border-stone-200 bg-stone-50 p-3 text-sm text-slate-700">
+            <input class="mt-1" type="checkbox" formControlName="consentimientoPerfilPublico">
+            <span>Autorizo que la foto principal, datos críticos y mi teléfono sean visibles en el perfil público NFC para identificación o emergencia. *</span>
+          </label>
           @if (message()) { <p class="text-sm" [class.text-brand]="!isError()" [class.text-red-600]="isError()">{{ message() }}</p> }
           <div class="grid gap-2 sm:grid-cols-2">
             <button class="btn w-full" [disabled]="form.invalid || saving()">{{ saving() ? 'Guardando...' : editingId() ? 'Actualizar mascota' : 'Guardar mascota' }}</button>
@@ -66,7 +90,7 @@ import { ToastService } from '../../core/services/toast.service';
         @for (pet of pets(); track pet._id) {
           <article class="panel overflow-hidden p-0">
             <button type="button" class="flex aspect-[4/3] w-full items-center justify-center bg-stone-100" (click)="openGallery(pet, 0)">
-              <img class="h-full w-full object-contain transition duration-300 hover:scale-[1.02]" [src]="mainPhoto(pet)" [alt]="pet.nombre">
+              <img class="h-full w-full object-cover transition duration-300 hover:scale-[1.02]" [style.object-position]="coverPosition(pet)" [src]="mainPhoto(pet)" [alt]="pet.nombre">
             </button>
             <div class="p-5">
             <div class="flex items-start justify-between gap-3">
@@ -88,7 +112,7 @@ import { ToastService } from '../../core/services/toast.service';
               <div class="mt-4 grid grid-cols-5 gap-2">
                 @for (photo of pet.fotos?.slice(0, 5); track photo; let i = $index) {
                   <button type="button" class="overflow-hidden rounded-md bg-stone-100 ring-brand/20 transition hover:ring-4" (click)="openGallery(pet, i)">
-                    <img class="aspect-square w-full object-contain" [src]="photo" [alt]="pet.nombre + ' foto ' + (i + 1)">
+                    <img class="aspect-square w-full object-cover" [src]="photo" [alt]="pet.nombre + ' foto ' + (i + 1)">
                   </button>
                 }
               </div>
@@ -149,8 +173,10 @@ export class PetsComponent implements OnInit {
   saving = signal(false);
   loading = signal(true);
   editingId = signal<string | null>(null);
+  previewPhoto = signal<string | null>(null);
   gallery = signal<{ name: string; photos: string[]; index: number } | null>(null);
   files: File[] = [];
+  private localPreviewUrl: string | null = null;
   form = this.fb.nonNullable.group({
     nombre: ['', Validators.required],
     especie: ['', Validators.required],
@@ -159,7 +185,10 @@ export class PetsComponent implements OnInit {
     edad: [0],
     sexo: ['DESCONOCIDO'],
     color: [''],
-    esterilizado: [false]
+    esterilizado: [false],
+    fotoPosicionX: [50],
+    fotoPosicionY: [50],
+    consentimientoPerfilPublico: [false, Validators.requiredTrue]
   });
 
   ngOnInit() { this.load(); }
@@ -177,9 +206,11 @@ export class PetsComponent implements OnInit {
       this.message.set('Puedes subir máximo 5 fotos por mascota.');
       input.value = '';
       this.files = [];
+      this.setPreview(null);
       return;
     }
     this.files = selected;
+    this.setPreview(selected[0] ? URL.createObjectURL(selected[0]) : null, Boolean(selected[0]));
   }
 
   create() {
@@ -234,15 +265,20 @@ export class PetsComponent implements OnInit {
       edad: pet.edad || 0,
       sexo: pet.sexo || 'DESCONOCIDO',
       color: pet.color || '',
-      esterilizado: Boolean(pet.esterilizado)
+      esterilizado: Boolean(pet.esterilizado),
+      fotoPosicionX: pet.fotoPosicionX ?? 50,
+      fotoPosicionY: pet.fotoPosicionY ?? 50,
+      consentimientoPerfilPublico: true
     });
+    this.setPreview(this.mainPhoto(pet));
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
   cancelEdit(clearMessage = true) {
     this.editingId.set(null);
-    this.form.reset({ especie: '', especieOtra: '', sexo: 'DESCONOCIDO', edad: 0, esterilizado: false });
+    this.form.reset({ especie: '', especieOtra: '', sexo: 'DESCONOCIDO', edad: 0, esterilizado: false, fotoPosicionX: 50, fotoPosicionY: 50, consentimientoPerfilPublico: false });
     this.files = [];
+    this.setPreview(null);
     if (this.fileInput) this.fileInput.nativeElement.value = '';
     if (clearMessage) this.message.set('');
   }
@@ -261,6 +297,14 @@ export class PetsComponent implements OnInit {
 
   mainPhoto(pet: Pet) {
     return this.photos(pet)[0];
+  }
+
+  coverPosition(pet: Pet) {
+    return `${pet.fotoPosicionX ?? 50}% ${pet.fotoPosicionY ?? 50}%`;
+  }
+
+  previewPosition() {
+    return `${this.form.controls.fotoPosicionX.value}% ${this.form.controls.fotoPosicionY.value}%`;
   }
 
   photos(pet: Pet) {
@@ -298,5 +342,11 @@ export class PetsComponent implements OnInit {
     this.isError.set(false);
     this.message.set(message);
     this.toast.success(message);
+  }
+
+  private setPreview(url: string | null, local = false) {
+    if (this.localPreviewUrl) URL.revokeObjectURL(this.localPreviewUrl);
+    this.localPreviewUrl = local ? url : null;
+    this.previewPhoto.set(url);
   }
 }

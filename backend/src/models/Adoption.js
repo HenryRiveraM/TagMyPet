@@ -19,7 +19,10 @@ const adoptionApplicationSchema = new mongoose.Schema({
     compromiso: { type: String, required: true }
   },
   firmaDigital: { type: String, required: true },
-  estado: { type: String, enum: ['PENDING', 'APPROVED', 'REJECTED'], default: 'PENDING' }
+  consentimientoPerfilPublico: { type: Boolean, required: true },
+  estado: { type: String, enum: ['PENDING', 'APPROVED', 'REJECTED'], default: 'PENDING' },
+  revisadaPor: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+  fechaDecision: { type: Date }
 }, { timestamps: true });
 
 export const Adoption = mongoose.model('Adoption', adoptionSchema);

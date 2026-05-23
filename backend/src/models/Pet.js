@@ -9,12 +9,16 @@ const petSchema = new mongoose.Schema({
   color: { type: String, trim: true },
   foto: { type: String },
   fotos: [{ type: String }],
+  fotoPosicionX: { type: Number, min: 0, max: 100, default: 50 },
+  fotoPosicionY: { type: Number, min: 0, max: 100, default: 50 },
   enfermedades: [{ type: String, trim: true }],
   alergias: [{ type: String, trim: true }],
   medicacion: [{ type: String, trim: true }],
   esterilizado: { type: Boolean, default: false },
   codigoNFC: { type: String, unique: true, index: true, required: true },
   propietario: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+  consentimientoPerfilPublico: { type: Boolean, default: false },
+  fechaConsentimiento: { type: Date },
   estado: { type: String, enum: ['ACTIVE', 'LOST', 'ADOPTION', 'INACTIVE'], default: 'ACTIVE' }
 }, { timestamps: true });
 

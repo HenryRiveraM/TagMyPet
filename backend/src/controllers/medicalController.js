@@ -32,6 +32,9 @@ export const deleteMedicalRecord = asyncHandler(async (req, res) => {
   const record = await MedicalRecord.findById(req.params.id);
   if (!record) throw new ApiError('Registro no encontrado', 404);
   await assertPetAccess(req.user, record.pet);
+  if (req.user.rol === 'VETERINARIO' && record.registradoPor.toString() !== req.user._id.toString()) {
+    throw new ApiError('Solo puedes eliminar registros creados por ti', 403);
+  }
   await record.deleteOne();
   res.status(204).send();
 });

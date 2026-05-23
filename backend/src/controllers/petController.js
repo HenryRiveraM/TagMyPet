@@ -4,6 +4,9 @@ import { NfcTag } from '../models/NfcTag.js';
 import { Pet } from '../models/Pet.js';
 import { PetAccess } from '../models/PetAccess.js';
 import { MedicalRecord } from '../models/MedicalRecord.js';
+import { Reminder } from '../models/Reminder.js';
+import { LostReport } from '../models/LostReport.js';
+import { Adoption, AdoptionApplication } from '../models/Adoption.js';
 import { ApiError } from '../utils/apiError.js';
 import { asyncHandler } from '../utils/asyncHandler.js';
 
@@ -42,10 +45,15 @@ export const createPet = asyncHandler(async (req, res) => {
     const count = await Pet.countDocuments({ propietario: req.user._id });
     if (count >= 2) throw new ApiError('El plan FREE permite hasta 2 mascotas', 402);
   }
+  if (String(req.body.consentimientoPerfilPublico) !== 'true') {
+    throw new ApiError('Debes autorizar la publicación de foto y contacto en el perfil NFC', 400);
+  }
 
   const data = { ...req.body, propietario: req.user._id };
   delete data.codigoNFC;
   data.codigoNFC = crypto.randomUUID();
+  data.consentimientoPerfilPublico = true;
+  data.fechaConsentimiento = new Date();
   const photos = await uploadImages(req.files || []);
   if (photos.length) {
     data.fotos = photos;
@@ -67,7 +75,11 @@ export const createPet = asyncHandler(async (req, res) => {
 export const getPet = asyncHandler(async (req, res) => {
   const pet = await Pet.findById(req.params.id).populate('propietario', 'nombre apellido email telefono ciudad');
   if (!pet) throw new ApiError('Mascota no encontrada', 404);
-  if (!canManagePet(req.user, pet) && !['VETERINARIO'].includes(req.user.rol)) throw new ApiError('Sin acceso', 403);
+  if (!canManagePet(req.user, pet)) {
+    const approvedAccess = req.user.rol === 'VETERINARIO' &&
+      await PetAccess.exists({ pet: pet._id, veterinarian: req.user._id, status: 'APPROVED' });
+    if (!approvedAccess) throw new ApiError('Sin acceso autorizado a esta mascota', 403);
+  }
   res.json(pet);
 });
 
@@ -78,6 +90,12 @@ export const updatePet = asyncHandler(async (req, res) => {
 
   const data = { ...req.body };
   delete data.codigoNFC;
+  if (!pet.consentimientoPerfilPublico && String(data.consentimientoPerfilPublico) === 'true') {
+    pet.consentimientoPerfilPublico = true;
+    pet.fechaConsentimiento = new Date();
+  }
+  delete data.consentimientoPerfilPublico;
+  delete data.fechaConsentimiento;
   Object.assign(pet, data);
   const photos = await uploadImages(req.files || []);
   if (photos.length) {
@@ -93,6 +111,13 @@ export const deletePet = asyncHandler(async (req, res) => {
   if (!pet) throw new ApiError('Mascota no encontrada', 404);
   if (!canManagePet(req.user, pet)) throw new ApiError('Sin acceso', 403);
   await MedicalRecord.deleteMany({ pet: pet._id });
+  await Reminder.deleteMany({ pet: pet._id });
+  await LostReport.deleteMany({ pet: pet._id });
+  const adoptions = await Adoption.find({ pet: pet._id }).select('_id');
+  await AdoptionApplication.deleteMany({ adoption: { $in: adoptions.map((adoption) => adoption._id) } });
+  await Adoption.deleteMany({ pet: pet._id });
+  await PetAccess.deleteMany({ pet: pet._id });
+  await NfcTag.updateMany({ pet: pet._id }, { $unset: { pet: 1, owner: 1 }, status: 'DISABLED' });
   await pet.deleteOne();
   res.status(204).send();
 });
@@ -100,7 +125,9 @@ export const deletePet = asyncHandler(async (req, res) => {
 export const publicNfcProfile = asyncHandler(async (req, res) => {
   const pet = await Pet.findOne({ codigoNFC: req.params.nfcCode })
     .populate('propietario', 'nombre telefono ciudad');
-  if (!pet || pet.estado === 'INACTIVE') throw new ApiError('Perfil no encontrado', 404);
+  if (!pet || pet.estado === 'INACTIVE' || !pet.consentimientoPerfilPublico) {
+    throw new ApiError('Perfil no encontrado', 404);
+  }
 
   res.json({
     nombre: pet.nombre,
@@ -109,6 +136,8 @@ export const publicNfcProfile = asyncHandler(async (req, res) => {
     color: pet.color,
     foto: pet.foto,
     fotos: pet.fotos,
+    fotoPosicionX: pet.fotoPosicionX,
+    fotoPosicionY: pet.fotoPosicionY,
     alergias: pet.alergias,
     medicacion: pet.medicacion,
     enfermedades: pet.enfermedades,

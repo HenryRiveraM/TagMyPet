@@ -87,7 +87,8 @@ import { AuthService } from '../../core/services/auth.service';
               <li class="flex gap-3"><span class="mt-1 h-2 w-2 shrink-0 rounded-full bg-gold"></span><span>{{ item }}</span></li>
             }
           </ul>
-          <a routerLink="/register" class="mt-6 inline-flex min-h-10 w-full items-center justify-center rounded-md bg-white px-4 py-2 text-sm font-bold text-slate-950 shadow-sm transition hover:-translate-y-0.5 hover:bg-stone-100">Activar Premium</a>
+          <a routerLink="/register" class="mt-6 inline-flex min-h-10 w-full items-center justify-center rounded-md bg-white px-4 py-2 text-sm font-bold text-slate-950 shadow-sm transition hover:-translate-y-0.5 hover:bg-stone-100">Crear cuenta y solicitar Premium</a>
+          <p class="relative mt-3 text-center text-xs text-stone-300">Activación manual después de verificar el pago.</p>
         </article>
       </div>
     </section>
@@ -169,7 +170,7 @@ export class HomeComponent implements OnInit {
     'Hasta 5 fotos por mascota',
     'Gestión de adopciones y reportes perdidos',
     'Acceso veterinario autorizado por mascota',
-    'Preparado para beneficios y pagos futuros'
+    'Activación manual con comprobante verificado'
   ];
 
   steps = [
@@ -186,7 +187,7 @@ export class HomeComponent implements OnInit {
   faqs = [
     { q: '¿Qué ve alguien al escanear el NFC?', a: 'Solo el perfil público: foto, nombre, datos críticos y formas de contacto. No se expone el historial completo.' },
     { q: '¿Puedo usarlo sin sensor NFC en la computadora?', a: 'Sí. Copias el link público y lo grabas en el collar con NFC Tools desde un celular compatible.' },
-    { q: '¿Qué incluye Premium?', a: 'Mascotas ilimitadas, historial completo, recordatorios, más fotos, reportes perdidos, adopciones y acceso veterinario autorizado.' },
+    { q: '¿Qué incluye Premium?', a: 'Por 70 Bs al mes incluye mascotas ilimitadas, historial completo, recordatorios, más fotos, reportes perdidos, adopciones y acceso veterinario autorizado. Su activación se verifica manualmente.' },
     { q: '¿Quién aprueba clínicas?', a: 'El admin revisa y aprueba clínicas para que puedan operar como veterinarias oficiales dentro de TagMyPet.' }
   ];
 }

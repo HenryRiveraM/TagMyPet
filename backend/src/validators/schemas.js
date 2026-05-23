@@ -1,12 +1,12 @@
 import { body } from 'express-validator';
-import { roles } from '../models/User.js';
 
 export const registerRules = [
   body('nombre').trim().notEmpty().withMessage('Nombre requerido'),
   body('apellido').trim().notEmpty().withMessage('Apellido requerido'),
   body('email').isEmail().normalizeEmail().withMessage('Email inválido'),
+  body('telefono').trim().notEmpty().withMessage('Teléfono requerido para el contacto NFC'),
   body('password').isLength({ min: 8 }).withMessage('Password mínimo 8 caracteres'),
-  body('rol').optional().isIn(roles).withMessage('Rol inválido')
+  body('rol').optional().isIn(['OWNER', 'VETERINARIO']).withMessage('Rol inválido')
 ];
 
 export const loginRules = [
@@ -26,6 +26,8 @@ export const petRules = [
   body('nombre').trim().notEmpty().withMessage('Nombre de mascota requerido'),
   body('especie').trim().notEmpty().withMessage('Especie requerida'),
   body('edad').optional().isNumeric().withMessage('Edad inválida'),
+  body('fotoPosicionX').optional().isFloat({ min: 0, max: 100 }).withMessage('Encuadre horizontal inválido'),
+  body('fotoPosicionY').optional().isFloat({ min: 0, max: 100 }).withMessage('Encuadre vertical inválido'),
   body('codigoNFC').optional().customSanitizer(() => undefined)
 ];
 
@@ -60,7 +62,21 @@ export const applicationRules = [
   body('cuestionario.experiencia').trim().notEmpty().withMessage('Experiencia requerida'),
   body('cuestionario.recursos').trim().notEmpty().withMessage('Recursos requeridos'),
   body('cuestionario.compromiso').trim().notEmpty().withMessage('Compromiso requerido'),
-  body('firmaDigital').trim().notEmpty().withMessage('Firma digital requerida')
+  body('firmaDigital').trim().notEmpty().withMessage('Firma digital requerida'),
+  body('consentimientoPerfilPublico').custom((value) => value === true).withMessage('Debes autorizar el contacto público NFC si la adopción es aprobada')
+];
+
+export const adoptionDecisionRules = [
+  body('estado').isIn(['APPROVED', 'REJECTED']).withMessage('Estado de solicitud inválido')
+];
+
+export const premiumRequestRules = [
+  body('paymentReference').trim().isLength({ min: 4, max: 120 }).withMessage('Referencia de pago requerida'),
+  body('notes').optional({ values: 'falsy' }).trim().isLength({ max: 400 }).withMessage('Notas demasiado largas')
+];
+
+export const premiumDecisionRules = [
+  body('status').isIn(['APPROVED', 'REJECTED']).withMessage('Estado de solicitud inválido')
 ];
 
 export const clinicRules = [

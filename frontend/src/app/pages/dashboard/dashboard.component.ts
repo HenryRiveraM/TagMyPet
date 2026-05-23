@@ -1,14 +1,15 @@
 import { DatePipe } from '@angular/common';
-import { Component, OnInit, computed, signal } from '@angular/core';
+import { Component, OnInit, computed, inject, signal } from '@angular/core';
+import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { AuthService } from '../../core/services/auth.service';
 import { ApiService } from '../../core/services/api.service';
-import { Clinic, Pet, Reminder } from '../../core/models/domain';
+import { Clinic, Pet, PremiumRequest, Reminder } from '../../core/models/domain';
 import { ToastService } from '../../core/services/toast.service';
 
 @Component({
   standalone: true,
-  imports: [RouterLink, DatePipe],
+  imports: [RouterLink, DatePipe, ReactiveFormsModule],
   template: `
     <section class="mb-6 overflow-hidden rounded-lg border border-white/80 bg-slate-950 p-6 text-white shadow-xl shadow-slate-300/50 md:p-8">
       <p class="eyebrow text-stone-200">Panel de control</p>
@@ -32,6 +33,32 @@ import { ToastService } from '../../core/services/toast.service';
         </div>
       }
     </section>
+    @if (auth.user()?.rol === 'OWNER') {
+      <section class="mb-6 rounded-lg border border-stone-200 bg-white p-5 shadow-sm md:p-6">
+        <div class="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+          <div>
+            <p class="eyebrow">Plan de cuenta</p>
+            @if (auth.user()?.plan === 'PREMIUM') {
+              <h2 class="mt-2 text-2xl font-bold">Premium activo</h2>
+              <p class="mt-2 text-sm text-slate-600">Tu cuenta tiene mascotas ilimitadas, historial completo y herramientas avanzadas.</p>
+            } @else {
+              <h2 class="mt-2 text-2xl font-bold">Activar Premium · 70 Bs/mes</h2>
+              <p class="mt-2 max-w-xl text-sm leading-6 text-slate-600">Coordina el pago con TagMyPet al <strong>76916697</strong> y envía la referencia para aprobación manual.</p>
+            }
+          </div>
+          @if (latestPremiumRequest(); as request) {
+            <span class="rounded-md px-3 py-2 text-sm font-bold" [class.bg-amber-100]="request.status === 'PENDING'" [class.text-amber-800]="request.status === 'PENDING'" [class.bg-emerald-100]="request.status === 'APPROVED'" [class.text-emerald-800]="request.status === 'APPROVED'" [class.bg-red-100]="request.status === 'REJECTED'" [class.text-red-800]="request.status === 'REJECTED'">Solicitud: {{ premiumStatus(request.status) }}</span>
+          }
+        </div>
+        @if (auth.user()?.plan !== 'PREMIUM' && !hasPendingPremium()) {
+          <form class="mt-5 grid gap-3 lg:grid-cols-[1fr_1fr_auto]" [formGroup]="premiumForm" (ngSubmit)="requestPremium()">
+	            <input class="field" formControlName="paymentReference" placeholder="Referencia de transacción *">
+            <input class="field" formControlName="notes" placeholder="Nota opcional">
+            <button class="btn" [disabled]="premiumForm.invalid">Enviar solicitud</button>
+          </form>
+        }
+      </section>
+    }
     <section class="grid gap-4 md:grid-cols-3">
       @if (loading()) {
         @for (item of [1,2,3]; track item) {
@@ -130,11 +157,17 @@ import { ToastService } from '../../core/services/toast.service';
   `
 })
 export class DashboardComponent implements OnInit {
+  private fb = inject(FormBuilder);
   message = '';
   pets = signal<Pet[]>([]);
   reminders = signal<Reminder[]>([]);
   clinics = signal<Clinic[]>([]);
+  premiumRequests = signal<PremiumRequest[]>([]);
   loading = signal(true);
+  premiumForm = this.fb.nonNullable.group({
+    paymentReference: ['', [Validators.required, Validators.minLength(4)]],
+    notes: ['']
+  });
   activeClinics = computed(() => this.clinics().filter((clinic) => clinic.estado === 'ACTIVE'));
   constructor(public auth: AuthService, private api: ApiService, private toast: ToastService) {}
 
@@ -143,6 +176,9 @@ export class DashboardComponent implements OnInit {
     this.api.clinics().subscribe({ next: (clinics) => this.clinics.set(clinics), error: () => undefined });
     if (this.auth.user()?.rol !== 'VETERINARIO') {
       this.api.reminders().subscribe({ next: (reminders) => this.reminders.set(reminders), error: () => undefined });
+    }
+    if (this.auth.user()?.rol === 'OWNER') {
+      this.auth.refreshUser().subscribe({ next: () => this.loadPremiumRequests(), error: () => this.loadPremiumRequests() });
     }
   }
 
@@ -201,5 +237,24 @@ export class DashboardComponent implements OnInit {
 
   sendReminderNotifications() {
     this.api.sendReminderNotifications().subscribe((res) => { this.message = `Recordatorios enviados: ${res.sent}`; this.toast.success(this.message); });
+  }
+
+  loadPremiumRequests() {
+    this.api.myPremiumRequests().subscribe({ next: (requests) => this.premiumRequests.set(requests), error: () => undefined });
+  }
+
+  latestPremiumRequest() { return this.premiumRequests()[0]; }
+  hasPendingPremium() { return this.latestPremiumRequest()?.status === 'PENDING'; }
+
+  premiumStatus(status: string) {
+    return ({ PENDING: 'En revisión', APPROVED: 'Aprobada', REJECTED: 'Rechazada' } as Record<string, string>)[status] || status;
+  }
+
+  requestPremium() {
+    if (this.premiumForm.invalid) return;
+    this.api.requestPremium(this.premiumForm.getRawValue()).subscribe({
+      next: () => { this.toast.success('Solicitud Premium enviada para revisión'); this.premiumForm.reset(); this.loadPremiumRequests(); },
+      error: (err) => this.toast.error(err.error?.message || 'No se pudo enviar la solicitud Premium')
+    });
   }
 }

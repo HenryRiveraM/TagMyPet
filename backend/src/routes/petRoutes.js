@@ -12,5 +12,5 @@ petRoutes.use(protect);
 petRoutes.get('/', allowRoles('ADMIN', 'OWNER', 'VETERINARIO'), listPets);
 petRoutes.post('/', allowRoles('ADMIN', 'OWNER'), upload.array('fotos', 5), petRules, validate, createPet);
 petRoutes.get('/:id', getPet);
-petRoutes.put('/:id', allowRoles('ADMIN', 'OWNER'), upload.array('fotos', 5), updatePet);
+petRoutes.put('/:id', allowRoles('ADMIN', 'OWNER'), upload.array('fotos', 5), petRules, validate, updatePet);
 petRoutes.delete('/:id', allowRoles('ADMIN', 'OWNER'), deletePet);

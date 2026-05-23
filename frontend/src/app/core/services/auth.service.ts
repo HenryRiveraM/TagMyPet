@@ -48,6 +48,13 @@ export class AuthService {
     return this.http.post<{ message: string }>(`${environment.apiUrl}/auth/resend-verification`, {});
   }
 
+  refreshUser() {
+    return this.http.get<{ user: User }>(`${environment.apiUrl}/auth/me`).pipe(tap((res) => {
+      localStorage.setItem(this.userKey, JSON.stringify(res.user));
+      this.userState.set(res.user);
+    }));
+  }
+
   logout() {
     localStorage.removeItem(this.tokenKey);
     localStorage.removeItem(this.userKey);

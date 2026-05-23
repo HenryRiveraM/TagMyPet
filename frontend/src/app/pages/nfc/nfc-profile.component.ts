@@ -10,8 +10,8 @@ import { Pet, User } from '../../core/models/domain';
     @if (pet(); as profile) {
       <section class="mx-auto max-w-4xl overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm">
         <div class="relative">
-          <button type="button" class="flex max-h-[560px] min-h-[320px] w-full items-center justify-center bg-stone-100" (click)="openGallery(profile, 0)">
-            <img class="max-h-[560px] w-full object-contain transition duration-300 hover:scale-[1.02]" [src]="mainPhoto(profile)" [alt]="profile.nombre">
+          <button type="button" class="h-[min(65vh,560px)] min-h-[320px] w-full overflow-hidden bg-stone-100" (click)="openGallery(profile, 0)">
+            <img class="h-full w-full object-cover transition duration-300 hover:scale-[1.02]" [style.object-position]="coverPosition(profile)" [src]="mainPhoto(profile)" [alt]="profile.nombre">
           </button>
           <div class="absolute inset-x-0 bottom-0 bg-gradient-to-t from-slate-950/80 to-transparent p-6 text-white">
             <div class="flex flex-wrap items-end justify-between gap-3">
@@ -55,7 +55,7 @@ import { Pet, User } from '../../core/models/domain';
             <div class="mt-6 grid grid-cols-5 gap-2">
               @for (photo of profile.fotos?.slice(0, 5); track photo; let i = $index) {
                 <button type="button" class="overflow-hidden rounded-md bg-stone-100 ring-brand/20 transition hover:ring-4" (click)="openGallery(profile, i)">
-                  <img class="aspect-square w-full object-contain" [src]="photo" [alt]="profile.nombre + ' foto ' + (i + 1)">
+                  <img class="aspect-square w-full object-cover" [src]="photo" [alt]="profile.nombre + ' foto ' + (i + 1)">
                 </button>
               }
             </div>
@@ -132,6 +132,9 @@ export class NfcProfileComponent implements OnInit {
   }
   mainPhoto(profile: Partial<Pet>) {
     return this.photos(profile)[0];
+  }
+  coverPosition(profile: Partial<Pet>) {
+    return `${profile.fotoPosicionX ?? 50}% ${profile.fotoPosicionY ?? 50}%`;
   }
   photos(profile: Partial<Pet>) {
     const images = profile.fotos?.length ? profile.fotos : profile.foto ? [profile.foto] : [];

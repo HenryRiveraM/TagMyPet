@@ -67,14 +67,14 @@ import { ToastService } from '../../core/services/toast.service';
           <article class="panel">
             <button type="button" class="mb-4 block w-full overflow-hidden rounded-md bg-stone-100 text-left" (click)="openGallery(report.pet, 0)">
               <span class="flex aspect-[4/3] w-full items-center justify-center">
-                <img class="h-full w-full object-contain transition duration-300 hover:scale-[1.02]" [src]="mainPhoto(report.pet)" [alt]="report.pet.nombre">
+                <img class="h-full w-full object-cover transition duration-300 hover:scale-[1.02]" [style.object-position]="coverPosition(report.pet)" [src]="mainPhoto(report.pet)" [alt]="report.pet.nombre">
               </span>
             </button>
             @if ((photos(report.pet).length || 0) > 1) {
               <div class="mb-4 grid grid-cols-5 gap-2">
                 @for (photo of photos(report.pet); track photo; let i = $index) {
                   <button type="button" class="overflow-hidden rounded-md bg-stone-100 ring-brand/20 transition hover:ring-4" (click)="openGallery(report.pet, i)">
-                    <img class="aspect-square w-full object-contain" [src]="photo" [alt]="report.pet.nombre + ' foto ' + (i + 1)">
+                    <img class="aspect-square w-full object-cover" [src]="photo" [alt]="report.pet.nombre + ' foto ' + (i + 1)">
                   </button>
                 }
               </div>
@@ -177,6 +177,7 @@ export class LostComponent implements OnInit {
     return images.length ? images : ['https://images.unsplash.com/photo-1583511655826-05700d52f4d9?auto=format&fit=crop&w=900&q=80'];
   }
   mainPhoto(pet: Pet) { return this.photos(pet)[0]; }
+  coverPosition(pet: Pet) { return `${pet.fotoPosicionX ?? 50}% ${pet.fotoPosicionY ?? 50}%`; }
   openGallery(pet: Pet, index: number) {
     const photos = this.photos(pet);
     this.gallery.set({ name: pet.nombre, photos, index: Math.min(index, photos.length - 1) });

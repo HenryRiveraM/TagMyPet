@@ -1,6 +1,6 @@
 import { Component, OnInit, signal } from '@angular/core';
 import { ApiService } from '../../core/services/api.service';
-import { Clinic, User } from '../../core/models/domain';
+import { Clinic, PremiumRequest, User } from '../../core/models/domain';
 import { ToastService } from '../../core/services/toast.service';
 
 @Component({
@@ -82,6 +82,41 @@ import { ToastService } from '../../core/services/toast.service';
         }
       </article>
     </section>
+    <section class="panel mb-6">
+      <div class="flex items-center justify-between gap-3">
+        <div>
+          <p class="eyebrow">Planes Premium</p>
+          <h2 class="mt-2 text-xl font-bold">Pagos por verificar</h2>
+          <p class="mt-2 text-sm text-slate-600">Premium se activa solo después de revisar la referencia de pago de 70 Bs/mes.</p>
+        </div>
+        <span class="badge">{{ pendingPremium().length }} pendientes</span>
+      </div>
+      @if (!premiumRequests().length) {
+        <div class="mt-5 rounded-lg border border-dashed border-stone-300 bg-stone-50 p-6 text-sm text-slate-600">No hay solicitudes Premium todavía.</div>
+      } @else {
+        <div class="mt-5 grid gap-3 lg:grid-cols-2">
+          @for (request of premiumRequests(); track request._id) {
+            <article class="rounded-lg border border-stone-200 bg-stone-50 p-4">
+              <div class="flex items-start justify-between gap-3">
+                <div>
+                  <p class="font-bold">{{ request.user?.nombre }} {{ request.user?.apellido }}</p>
+                  <p class="mt-1 text-xs text-slate-500">{{ request.user?.email }}</p>
+                  <p class="mt-3 text-sm text-slate-700"><strong>Referencia:</strong> {{ request.paymentReference }}</p>
+                  @if (request.notes) { <p class="mt-1 text-sm text-slate-600">{{ request.notes }}</p> }
+                </div>
+                <span class="badge">{{ request.status }}</span>
+              </div>
+              @if (request.status === 'PENDING') {
+                <div class="mt-4 flex gap-2">
+                  <button class="btn" (click)="decidePremium(request, 'APPROVED')">Activar Premium</button>
+                  <button class="btn-outline" (click)="decidePremium(request, 'REJECTED')">Rechazar</button>
+                </div>
+              }
+            </article>
+          }
+        </div>
+      }
+    </section>
     <section class="panel">
       <div class="flex items-center justify-between gap-3">
         <div>
@@ -114,10 +149,12 @@ export class AdminComponent implements OnInit {
   stats = signal<Record<string, number>>({});
   users = signal<User[]>([]);
   clinics = signal<Clinic[]>([]);
+  premiumRequests = signal<PremiumRequest[]>([]);
   loading = signal(true);
   constructor(private api: ApiService, private toast: ToastService) {}
   ngOnInit() { this.load(); }
   pendingClinics() { return this.clinics().filter((clinic) => clinic.estado === 'PENDING'); }
+  pendingPremium() { return this.premiumRequests().filter((request) => request.status === 'PENDING'); }
   statItems() {
     const s = this.stats();
     return [
@@ -126,6 +163,7 @@ export class AdminComponent implements OnInit {
       { label: 'Perdidos', value: s['lost'] || 0 },
       { label: 'Adopciones', value: s['adoptions'] || 0 },
       { label: 'Premium', value: s['premium'] || 0 },
+      { label: 'Premium pendientes', value: s['pendingPremium'] || 0 },
       { label: 'Clínicas', value: s['clinics'] || 0 },
       { label: 'Tags NFC', value: s['tags'] || 0 }
     ];
@@ -134,6 +172,7 @@ export class AdminComponent implements OnInit {
     this.loading.set(true);
     this.api.adminStats().subscribe((s) => this.stats.set(s));
     this.api.users().subscribe((u) => this.users.set(u));
+    this.api.premiumRequests().subscribe({ next: (requests) => this.premiumRequests.set(requests), error: () => this.toast.error('No se pudieron cargar las solicitudes Premium') });
     this.api.clinics().subscribe({ next: (clinics) => { this.clinics.set(clinics); this.loading.set(false); }, error: () => { this.loading.set(false); this.toast.error('No se pudo cargar el panel admin'); } });
   }
   toggle(user: User) {
@@ -144,5 +183,12 @@ export class AdminComponent implements OnInit {
   }
   updateClinic(clinic: Clinic, estado: 'ACTIVE' | 'SUSPENDED') {
     this.api.updateClinicStatus(clinic._id, estado).subscribe({ next: () => { this.toast.success(estado === 'ACTIVE' ? 'Clínica aprobada' : 'Clínica suspendida'); this.load(); }, error: (err) => this.toast.error(err.error?.message || 'No se pudo actualizar la clínica') });
+  }
+  decidePremium(request: PremiumRequest, status: 'APPROVED' | 'REJECTED') {
+    if (!confirm(status === 'APPROVED' ? '¿Confirmas que verificaste el pago y deseas activar Premium?' : '¿Rechazar esta solicitud Premium?')) return;
+    this.api.decidePremiumRequest(request._id, status).subscribe({
+      next: () => { this.toast.success(status === 'APPROVED' ? 'Premium activado' : 'Solicitud rechazada'); this.load(); },
+      error: (err) => this.toast.error(err.error?.message || 'No se pudo procesar la solicitud')
+    });
   }
 }

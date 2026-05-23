@@ -7,6 +7,7 @@ import { MedicalRecord } from '../models/MedicalRecord.js';
 import { NfcTag } from '../models/NfcTag.js';
 import { Pet } from '../models/Pet.js';
 import { PetAccess } from '../models/PetAccess.js';
+import { PremiumRequest } from '../models/PremiumRequest.js';
 import { Reminder } from '../models/Reminder.js';
 import { User } from '../models/User.js';
 import { publicPetUrl } from '../utils/url.js';
@@ -23,6 +24,7 @@ await Promise.all([
   Adoption.deleteMany(),
   Clinic.deleteMany(),
   PetAccess.deleteMany(),
+  PremiumRequest.deleteMany(),
   NfcTag.deleteMany()
 ]);
 
@@ -46,6 +48,8 @@ const [luna, max] = await Pet.create([
     medicacion: ['Antihistamínico estacional'],
     esterilizado: true,
     codigoNFC: 'NFC-LUNA-001',
+    consentimientoPerfilPublico: true,
+    fechaConsentimiento: new Date(),
     propietario: owner._id
   },
   {
@@ -58,6 +62,8 @@ const [luna, max] = await Pet.create([
     foto: 'https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba',
     esterilizado: true,
     codigoNFC: 'NFC-MAX-002',
+    consentimientoPerfilPublico: true,
+    fechaConsentimiento: new Date(),
     propietario: owner._id,
     estado: 'ADOPTION'
   }

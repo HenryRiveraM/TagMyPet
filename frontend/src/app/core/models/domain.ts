@@ -24,10 +24,13 @@ export interface Pet {
   color?: string;
   foto?: string;
   fotos?: string[];
+  fotoPosicionX?: number;
+  fotoPosicionY?: number;
   enfermedades?: string[];
   alergias?: string[];
   medicacion?: string[];
   esterilizado?: boolean;
+  consentimientoPerfilPublico?: boolean;
   codigoNFC: string;
   estado: string;
   propietario?: User;
@@ -45,10 +48,39 @@ export interface Reminder {
 export interface Adoption {
   _id: string;
   pet: Pet;
+  owner?: User;
   descripcion: string;
   requisitos: string[];
   ciudad: string;
   estado: string;
+}
+
+export interface AdoptionApplication {
+  _id: string;
+  adoption: Adoption;
+  solicitante: User;
+  cuestionario: {
+    espacio: string;
+    experiencia: string;
+    recursos: string;
+    compromiso: string;
+  };
+  firmaDigital: string;
+  consentimientoPerfilPublico: boolean;
+  estado: 'PENDING' | 'APPROVED' | 'REJECTED';
+  createdAt?: string;
+}
+
+export interface PremiumRequest {
+  _id: string;
+  user?: User;
+  plan: 'PREMIUM';
+  price: number;
+  currency: string;
+  paymentReference: string;
+  notes?: string;
+  status: 'PENDING' | 'APPROVED' | 'REJECTED';
+  createdAt?: string;
 }
 
 export interface LostReport {

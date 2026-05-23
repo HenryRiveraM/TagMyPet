@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { environment } from '../../../environments/environment';
-import { Adoption, Clinic, LostReport, NfcTag, Pet, PetAccessRequest, Reminder, User } from '../models/domain';
+import { Adoption, AdoptionApplication, Clinic, LostReport, NfcTag, Pet, PetAccessRequest, PremiumRequest, Reminder, User } from '../models/domain';
 
 @Injectable({ providedIn: 'root' })
 export class ApiService {
@@ -39,6 +39,9 @@ export class ApiService {
   }
   createAdoption(data: object) { return this.http.post(`${this.api}/adoptions`, data); }
   applyAdoption(id: string, data: object) { return this.http.post(`${this.api}/adoptions/${id}/apply`, data); }
+  adoptionApplications() { return this.http.get<AdoptionApplication[]>(`${this.api}/adoptions/applications`); }
+  decideAdoptionApplication(id: string, estado: 'APPROVED' | 'REJECTED') { return this.http.patch<AdoptionApplication>(`${this.api}/adoptions/applications/${id}/status`, { estado }); }
+  closeAdoption(id: string) { return this.http.patch<Adoption>(`${this.api}/adoptions/${id}/close`, {}); }
   adminStats() { return this.http.get<Record<string, number>>(`${this.api}/admin/stats`); }
   users() { return this.http.get<User[]>(`${this.api}/admin/users`); }
   updateUserStatus(id: string, estado: string) { return this.http.patch<User>(`${this.api}/admin/users/${id}/status`, { estado }); }
@@ -56,4 +59,8 @@ export class ApiService {
   updateTagStatus(id: string, status: string, notes = '') { return this.http.patch<NfcTag>(`${this.api}/tags/${id}/status`, { status, notes }); }
   exportTagsCsv() { return this.http.get(`${this.api}/tags/export.csv`, { observe: 'response', responseType: 'blob' }); }
   sendReminderNotifications(daysAhead = 2) { return this.http.post<{ sent: number }>(`${this.api}/reminders/send-notifications?daysAhead=${daysAhead}`, {}); }
+  myPremiumRequests() { return this.http.get<PremiumRequest[]>(`${this.api}/premium/me`); }
+  requestPremium(data: object) { return this.http.post<PremiumRequest>(`${this.api}/premium`, data); }
+  premiumRequests() { return this.http.get<PremiumRequest[]>(`${this.api}/premium`); }
+  decidePremiumRequest(id: string, status: 'APPROVED' | 'REJECTED') { return this.http.patch<PremiumRequest>(`${this.api}/premium/${id}/status`, { status }); }
 }

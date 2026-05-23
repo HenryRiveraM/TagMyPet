@@ -30,7 +30,7 @@ import { ToastService } from '../../core/services/toast.service';
             @if (selectedPet(); as pet) {
               <div class="grid gap-4 md:grid-cols-[160px_1fr] md:items-center">
                 <div class="flex aspect-square items-center justify-center overflow-hidden rounded-lg bg-stone-100">
-                  <img class="h-full w-full object-contain" [src]="mainPhoto(pet)" [alt]="pet.nombre">
+                  <img class="h-full w-full object-cover" [style.object-position]="coverPosition(pet)" [src]="mainPhoto(pet)" [alt]="pet.nombre">
                 </div>
                 <div>
                   <span class="badge">Perfil público</span>
@@ -104,6 +104,10 @@ export class TagsComponent implements OnInit {
 
   mainPhoto(pet: Pet) {
     return pet.fotos?.[0] || pet.foto || 'https://images.unsplash.com/photo-1548199973-03cce0bbc87b?auto=format&fit=crop&w=900&q=80';
+  }
+
+  coverPosition(pet: Pet) {
+    return `${pet.fotoPosicionX ?? 50}% ${pet.fotoPosicionY ?? 50}%`;
   }
 
   copyCode(pet: Pet) {

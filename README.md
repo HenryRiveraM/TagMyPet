@@ -98,6 +98,8 @@ EMAIL_FROM=TagMyPet <no-reply@tagmypet.com>
 - `OWNER`: registra mascotas, historial, recordatorios, perdidos, adopciones y aprueba accesos médicos.
 - `VETERINARIO`: registra/solicita clínica oficial, pide acceso médico con código NFC y actualiza historial autorizado.
 
+El registro público solo permite cuentas `OWNER` o `VETERINARIO`. Las cuentas `ADMIN` se crean de forma controlada mediante seed o administración de la plataforma.
+
 ## Seed
 
 El seed crea:
@@ -166,6 +168,15 @@ Adopciones:
 - `POST /api/adoptions`
 - `POST /api/adoptions/:id/apply`
 - `GET /api/adoptions/applications`
+- `PATCH /api/adoptions/applications/:id/status`
+- `PATCH /api/adoptions/:id/close`
+
+Premium manual:
+
+- `GET /api/premium/me`
+- `POST /api/premium`
+- `GET /api/premium` (`ADMIN`)
+- `PATCH /api/premium/:id/status` (`ADMIN`)
 
 Admin:
 
@@ -205,8 +216,11 @@ Inventario NFC:
 - Rate limiting básico.
 - Manejo global de errores.
 - Perfil NFC público sin email ni password ni datos privados.
+- Consentimiento explícito del dueño para publicar foto, datos críticos y teléfono en el perfil NFC.
 - Límite freemium de 2 mascotas para `OWNER` con plan `FREE`.
 - Autorizaciones médicas por mascota antes de que un veterinario escriba historial.
+- Un veterinario no puede consultar el detalle de una mascota sin autorización médica aprobada.
+- El registro público no permite autoseleccionar el rol administrador.
 - Inventario NFC con estados: disponible, asignado, vendido, defectuoso y desactivado.
 
 ## Cloudinary
@@ -306,6 +320,27 @@ Frontend en Netlify:
 1. Importar `frontend/`.
 2. El archivo `netlify.toml` ya define build y redirects SPA.
 
+## Plan Premium
+
+- Precio: `70 Bs/mes`.
+- El dueño coordina el pago con TagMyPet y registra su referencia desde el dashboard.
+- El administrador revisa la referencia en el panel admin y aprueba o rechaza la solicitud.
+- Al aprobar, el usuario pasa a plan `PREMIUM`.
+- Este MVP no procesa tarjetas, débitos automáticos ni pasarelas de pago; la verificación es manual.
+
+Contacto oficial para activación y soporte:
+
+- Teléfono: `76916697`
+- Email: `henryriveramendez@gmail.com`
+
+## Privacidad Y Consentimiento
+
+- Al crear una mascota, el dueño debe autorizar que su foto principal, datos críticos y teléfono sean visibles en el perfil público NFC.
+- Al aprobar una adopción, la mascota se transfiere al solicitante aprobado y este debe haber autorizado previamente que su teléfono sea el nuevo contacto público NFC.
+- El historial clínico completo permanece privado; el veterinario necesita autorización aprobada para acceder.
+- La portada de la mascota permite ajustar el encuadre horizontal y vertical para mostrar correctamente su cara, conservando la foto completa en la galería.
+- Para solicitar corrección o eliminación de cuenta, mascota o fotos, el usuario puede contactar al desarrollador oficial mediante el teléfono o email indicados.
+
 ## Pruebas Manuales
 
 1. Ejecutar seed.
@@ -313,14 +348,15 @@ Frontend en Netlify:
 3. Login con `admin@tagmypet.com`.
 4. Ver dashboard y panel admin.
 5. Login con `owner@tagmypet.com`.
-6. Crear mascota con hasta 5 fotos, copiar el código/link NFC y abrir su perfil público.
+6. Crear mascota con hasta 5 fotos, aceptar consentimiento NFC, ajustar su foto de portada, copiar el código/link y abrir su perfil público.
 7. Crear historial y recordatorios.
 8. Publicar reporte perdido.
-9. Desde la cuenta `owner@tagmypet.com`, solicitar adopción con cuestionario y firma digital.
+9. Desde otra cuenta OWNER, solicitar adopción con cuestionario y firma digital; desde el dueño original aprobar o rechazar y comprobar el estado.
 10. Login con `vet@tagmypet.com`.
 11. Crear una clínica desde veterinario y aprobarla desde admin, o revisar la clínica oficial del seed.
 12. Solicitar acceso médico con el código NFC de una mascota y aprobarlo desde dueño/admin.
 13. Login con `admin@tagmypet.com` y abrir `Tags NFC` para crear lote y asignar tags.
+14. Desde una cuenta FREE enviar solicitud Premium con referencia y aprobarla desde admin.
 
 ## Guion de Demo Recomendado
 

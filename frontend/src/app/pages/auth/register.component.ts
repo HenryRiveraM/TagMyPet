@@ -53,7 +53,7 @@ import { AuthService } from '../../core/services/auth.service';
             <input class="field" formControlName="email" placeholder="tu@email.com" type="email" autocomplete="email">
           </label>
           <label class="block min-w-0">
-            <span class="mb-1.5 block text-sm font-semibold text-slate-700">Teléfono</span>
+	            <span class="mb-1.5 block text-sm font-semibold text-slate-700">Teléfono *</span>
             <input class="field" formControlName="telefono" placeholder="+591..." type="tel" autocomplete="tel">
           </label>
           <label class="block min-w-0">
@@ -100,7 +100,7 @@ export class RegisterComponent {
     nombre: ['', Validators.required],
     apellido: ['', Validators.required],
     email: ['', [Validators.required, Validators.email]],
-    telefono: [''],
+	    telefono: ['', Validators.required],
     ciudad: [''],
     rol: ['OWNER' as const],
     password: ['', [Validators.required, Validators.minLength(8)]]
