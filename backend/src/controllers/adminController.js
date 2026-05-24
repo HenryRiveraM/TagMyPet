@@ -34,3 +34,19 @@ export const updateUserStatus = asyncHandler(async (req, res) => {
   const user = await User.findByIdAndUpdate(req.params.id, { estado: req.body.estado }, { new: true }).select('-password');
   res.json(user);
 });
+
+export const listDeletionRequests = asyncHandler(async (_req, res) => {
+  const users = await User.find({ deletionStatus: 'PENDING' })
+    .select('nombre apellido email deletionRequestedAt deletionReason deletionStatus')
+    .sort('-deletionRequestedAt');
+  res.json(users);
+});
+
+export const resolveDeletionRequest = asyncHandler(async (req, res) => {
+  const user = await User.findByIdAndUpdate(
+    req.params.id,
+    { deletionStatus: 'RESOLVED' },
+    { new: true }
+  ).select('-password');
+  res.json(user);
+});

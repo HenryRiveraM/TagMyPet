@@ -6,6 +6,8 @@ import { sendEmail } from '../utils/email.js';
 import { signToken } from '../utils/token.js';
 import { frontendUrl } from '../utils/url.js';
 import { expirePremiumIfNeeded } from '../utils/premium.js';
+import cloudinary from '../config/cloudinary.js';
+import { notifyUser } from '../utils/notifications.js';
 
 const publicUser = (user) => ({
   id: user._id,
@@ -14,13 +16,25 @@ const publicUser = (user) => ({
   email: user.email,
   telefono: user.telefono,
   ciudad: user.ciudad,
+  avatar: user.avatar,
   rol: user.rol,
   estado: user.estado,
   plan: user.plan,
   premiumStartedAt: user.premiumStartedAt,
   premiumExpiresAt: user.premiumExpiresAt,
-  emailVerified: user.emailVerified
+  emailVerified: user.emailVerified,
+  deletionStatus: user.deletionStatus
 });
+
+function uploadAvatar(buffer) {
+  return new Promise((resolve, reject) => {
+    const stream = cloudinary.uploader.upload_stream({ folder: 'tagmypet/avatars' }, (error, result) => {
+      if (error) reject(error);
+      else resolve(result.secure_url);
+    });
+    stream.end(buffer);
+  });
+}
 
 async function sendVerification(user) {
   const token = user.createEmailVerificationToken();
@@ -108,4 +122,34 @@ export const resendVerification = asyncHandler(async (req, res) => {
   if (req.user.emailVerified) return res.json({ message: 'Tu email ya está verificado' });
   await sendVerification(req.user);
   res.json({ message: 'Email de verificación enviado' });
+});
+
+export const updateProfile = asyncHandler(async (req, res) => {
+  const user = await User.findById(req.user._id);
+  user.nombre = req.body.nombre;
+  user.apellido = req.body.apellido;
+  user.telefono = req.body.telefono;
+  user.ciudad = req.body.ciudad;
+  if (req.file) user.avatar = await uploadAvatar(req.file.buffer);
+  await user.save();
+  res.json({ user: publicUser(user) });
+});
+
+export const changePassword = asyncHandler(async (req, res) => {
+  const user = await User.findById(req.user._id).select('+password');
+  if (!(await user.comparePassword(req.body.currentPassword))) throw new ApiError('La contraseña actual no es correcta', 401);
+  user.password = req.body.password;
+  await user.save();
+  await notifyUser(user._id, 'ACCOUNT', 'Contraseña actualizada', 'Tu contraseña fue cambiada correctamente.', '/perfil');
+  res.json({ message: 'Contraseña actualizada' });
+});
+
+export const requestAccountDeletion = asyncHandler(async (req, res) => {
+  const user = await User.findById(req.user._id);
+  user.deletionRequestedAt = new Date();
+  user.deletionReason = req.body.reason;
+  user.deletionStatus = 'PENDING';
+  await user.save({ validateBeforeSave: false });
+  await notifyUser(user._id, 'ACCOUNT', 'Solicitud recibida', 'Recibimos tu solicitud de eliminación. El administrador la revisará.', '/perfil');
+  res.json({ user: publicUser(user) });
 });

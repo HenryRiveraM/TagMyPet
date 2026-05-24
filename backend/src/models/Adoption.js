@@ -18,9 +18,23 @@ const adoptionApplicationSchema = new mongoose.Schema({
     recursos: { type: String, required: true },
     compromiso: { type: String, required: true }
   },
+  vivienda: { type: String, required: true, trim: true },
   firmaDigital: { type: String, required: true },
   consentimientoPerfilPublico: { type: Boolean, required: true },
   estado: { type: String, enum: ['PENDING', 'APPROVED', 'REJECTED'], default: 'PENDING' },
+  etapa: { type: String, enum: ['RECEIVED', 'IN_REVIEW', 'APPROVED', 'DELIVERED', 'REJECTED'], default: 'RECEIVED' },
+  entrevista: {
+    fecha: { type: Date },
+    modalidad: { type: String, trim: true },
+    notas: { type: String, trim: true }
+  },
+  seguimientos: [{
+    dias: { type: Number, enum: [7, 30, 90] },
+    fechaProgramada: { type: Date },
+    completado: { type: Boolean, default: false },
+    notas: { type: String, trim: true },
+    completadoAt: { type: Date }
+  }],
   revisadaPor: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
   fechaDecision: { type: Date }
 }, { timestamps: true });

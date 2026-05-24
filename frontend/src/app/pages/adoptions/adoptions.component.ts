@@ -1,3 +1,4 @@
+import { DatePipe } from '@angular/common';
 import { Component, OnInit, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { RouterLink } from '@angular/router';
@@ -6,10 +7,11 @@ import { AuthService } from '../../core/services/auth.service';
 import { Adoption, AdoptionApplication, Pet } from '../../core/models/domain';
 import { ToastService } from '../../core/services/toast.service';
 import { PhotoGalleryView, PhotoViewerComponent } from '../../components/photo-viewer/photo-viewer.component';
+import { jsPDF } from 'jspdf';
 
 @Component({
   standalone: true,
-  imports: [ReactiveFormsModule, RouterLink, PhotoViewerComponent],
+  imports: [ReactiveFormsModule, RouterLink, PhotoViewerComponent, DatePipe],
   template: `
     <section class="mb-6 rounded-lg border border-white/80 bg-white/80 p-6 shadow-xl shadow-slate-200/70">
       <p class="eyebrow">Hogar responsable</p>
@@ -101,6 +103,7 @@ import { PhotoGalleryView, PhotoViewerComponent } from '../../components/photo-v
                     <input class="field" formControlName="experiencia" placeholder="Experiencia *">
                     <input class="field" formControlName="recursos" placeholder="Recursos *">
                     <input class="field" formControlName="compromiso" placeholder="Compromiso *">
+                    <textarea class="field min-h-24 md:col-span-2" formControlName="vivienda" placeholder="Vivienda, patio, convivencia y cuidados diarios *"></textarea>
                     <input class="field md:col-span-2" formControlName="firmaDigital" placeholder="Firma digital *">
                     <label class="flex items-start gap-3 rounded-md border border-stone-200 bg-white p-3 text-sm text-slate-700 md:col-span-2">
                       <input class="mt-1" type="checkbox" formControlName="consentimientoPerfilPublico">
@@ -140,7 +143,12 @@ import { PhotoGalleryView, PhotoViewerComponent } from '../../components/photo-v
                       @if (isReceived(application)) { {{ application.solicitante.nombre }} {{ application.solicitante.apellido }} } @else { Enviada al dueño }
                     </p>
                   </div>
-                  <span class="rounded-md px-3 py-1 text-xs font-bold" [class.bg-amber-100]="application.estado === 'PENDING'" [class.text-amber-800]="application.estado === 'PENDING'" [class.bg-emerald-100]="application.estado === 'APPROVED'" [class.text-emerald-800]="application.estado === 'APPROVED'" [class.bg-red-100]="application.estado === 'REJECTED'" [class.text-red-800]="application.estado === 'REJECTED'">{{ applicationStatus(application.estado) }}</span>
+                  <span class="rounded-md px-3 py-1 text-xs font-bold" [class.bg-amber-100]="stage(application) === 'RECEIVED' || stage(application) === 'IN_REVIEW'" [class.text-amber-800]="stage(application) === 'RECEIVED' || stage(application) === 'IN_REVIEW'" [class.bg-emerald-100]="stage(application) === 'APPROVED' || stage(application) === 'DELIVERED'" [class.text-emerald-800]="stage(application) === 'APPROVED' || stage(application) === 'DELIVERED'" [class.bg-red-100]="stage(application) === 'REJECTED'" [class.text-red-800]="stage(application) === 'REJECTED'">{{ applicationStatus(stage(application)) }}</span>
+                </div>
+                <div class="mt-4 flex gap-1" aria-label="Progreso de adopción">
+                  @for (step of processSteps; track step.value) {
+                    <span class="h-1.5 flex-1 rounded-full" [class.bg-slate-950]="stepDone(application, step.value)" [class.bg-stone-200]="!stepDone(application, step.value)"></span>
+                  }
                 </div>
                 @if (isReceived(application)) {
                   <div class="mt-4 grid gap-2 text-sm text-slate-600 sm:grid-cols-2">
@@ -148,15 +156,51 @@ import { PhotoGalleryView, PhotoViewerComponent } from '../../components/photo-v
                     <p><strong>Experiencia:</strong> {{ application.cuestionario.experiencia }}</p>
                     <p><strong>Recursos:</strong> {{ application.cuestionario.recursos }}</p>
                     <p><strong>Compromiso:</strong> {{ application.cuestionario.compromiso }}</p>
+                    <p class="sm:col-span-2"><strong>Vivienda:</strong> {{ application.vivienda }}</p>
                     <p><strong>Contacto:</strong> {{ application.solicitante.telefono || application.solicitante.email }}</p>
                     <p><strong>Firma:</strong> {{ application.firmaDigital }}</p>
                   </div>
-                  @if (application.estado === 'PENDING') {
-                    <div class="mt-4 flex gap-2">
-                      <button type="button" class="btn" (click)="decide(application, 'APPROVED')">Aprobar</button>
+                  @if (stage(application) === 'RECEIVED' || stage(application) === 'IN_REVIEW') {
+                    <div class="mt-4 rounded-md border border-stone-200 bg-white p-3">
+                      <p class="text-sm font-bold">Entrevista con el adoptante</p>
+                      <div class="mt-2 grid gap-2 sm:grid-cols-[1fr_1fr_auto]">
+                        <input class="field" type="datetime-local" [value]="interviewDates()[application._id] || ''" (input)="setInterviewDate(application._id, $event)">
+                        <input class="field" placeholder="Modalidad: videollamada o presencial" [value]="interviewModes()[application._id] || ''" (input)="setInterviewMode(application._id, $event)">
+                        <button type="button" class="btn-outline" (click)="review(application)">Agendar</button>
+                      </div>
+                    </div>
+                    <div class="mt-4 flex flex-wrap gap-2">
+                      <button type="button" class="btn" (click)="decide(application, 'APPROVED')">Aprobar candidatura</button>
                       <button type="button" class="btn-outline" (click)="decide(application, 'REJECTED')">Rechazar</button>
                     </div>
                   }
+                  @if (stage(application) === 'APPROVED') {
+                    <div class="mt-4 flex flex-wrap gap-2">
+                      <button type="button" class="btn-outline" (click)="downloadContract(application)">Descargar contrato PDF</button>
+                      <button type="button" class="btn" (click)="decide(application, 'DELIVERED')">Confirmar entrega</button>
+                    </div>
+                  }
+                } @else {
+                  @if (application.entrevista?.fecha) {
+                    <p class="mt-4 rounded-md bg-stone-100 p-3 text-sm"><strong>Entrevista:</strong> {{ application.entrevista?.fecha | date:'medium' }} · {{ application.entrevista?.modalidad || 'Por coordinar' }}</p>
+                  }
+                  @if (stage(application) === 'APPROVED' || stage(application) === 'DELIVERED') {
+                    <button type="button" class="btn-outline mt-4" (click)="downloadContract(application)">Descargar contrato PDF</button>
+                  }
+                }
+                @if (stage(application) === 'DELIVERED' && application.seguimientos?.length) {
+                  <div class="mt-4 rounded-md border border-stone-200 bg-white p-3">
+                    <p class="text-sm font-bold">Seguimiento postadopción</p>
+                    <div class="mt-3 grid gap-2">
+                      @for (followUp of application.seguimientos; track followUp.dias) {
+                        <div class="flex flex-wrap items-center justify-between gap-2 rounded-md bg-stone-50 p-3 text-sm">
+                          <span><strong>{{ followUp.dias }} días</strong> · {{ followUp.fechaProgramada | date }}</span>
+                          @if (followUp.completado) { <span class="badge">Completado</span> }
+                          @else { <button type="button" class="btn-outline" (click)="completeFollowUp(application, followUp.dias)">Marcar revisión</button> }
+                        </div>
+                      }
+                    </div>
+                  </div>
                 }
               </article>
             }
@@ -186,9 +230,18 @@ export class AdoptionsComponent implements OnInit {
     experiencia: ['', Validators.required],
     recursos: ['', Validators.required],
     compromiso: ['', Validators.required],
+    vivienda: ['', [Validators.required, Validators.minLength(15)]],
     firmaDigital: ['', Validators.required],
     consentimientoPerfilPublico: [false, Validators.requiredTrue]
   });
+  interviewDates = signal<Record<string, string>>({});
+  interviewModes = signal<Record<string, string>>({});
+  processSteps = [
+    { value: 'RECEIVED', label: 'Recibido' },
+    { value: 'IN_REVIEW', label: 'En revisión' },
+    { value: 'APPROVED', label: 'Aprobado' },
+    { value: 'DELIVERED', label: 'Entregado' }
+  ];
 
   ngOnInit() {
     this.load();
@@ -205,8 +258,8 @@ export class AdoptionsComponent implements OnInit {
   canManageAdoptions() { return ['ADMIN', 'OWNER'].includes(this.auth.user()?.rol || ''); }
   publish() { this.api.createAdoption({ ...this.publishForm.getRawValue(), requisitos: ['Seguimiento veterinario'] }).subscribe({ next: () => { this.toast.success('Publicación de adopción creada'); this.load(); this.loadApplications(); }, error: (err) => this.toast.error(err.error?.message || 'No se pudo publicar') }); }
   apply(id: string) {
-    const { firmaDigital, consentimientoPerfilPublico, ...cuestionario } = this.applyForm.getRawValue();
-    this.api.applyAdoption(id, { firmaDigital, consentimientoPerfilPublico, cuestionario }).subscribe({ next: () => { this.toast.success('Solicitud de adopción enviada'); this.applyForm.reset({ consentimientoPerfilPublico: false }); this.loadApplications(); }, error: (err) => this.toast.error(err.error?.message || 'No se pudo enviar la solicitud') });
+    const { firmaDigital, consentimientoPerfilPublico, vivienda, ...cuestionario } = this.applyForm.getRawValue();
+    this.api.applyAdoption(id, { firmaDigital, consentimientoPerfilPublico, vivienda, cuestionario }).subscribe({ next: () => { this.toast.success('Solicitud de adopción enviada'); this.applyForm.reset({ consentimientoPerfilPublico: false }); this.loadApplications(); }, error: (err) => this.toast.error(err.error?.message || 'No se pudo enviar la solicitud') });
   }
   loadApplications() {
     this.api.adoptionApplications().subscribe({ next: (applications) => this.applications.set(applications), error: () => this.toast.error('No se pudieron cargar tus solicitudes') });
@@ -223,15 +276,64 @@ export class AdoptionsComponent implements OnInit {
     if (!confirm(`¿Cerrar la publicación de ${adoption.pet.nombre}?`)) return;
     this.api.closeAdoption(adoption._id).subscribe({ next: () => { this.toast.success('Publicación cerrada'); this.load(); this.loadApplications(); }, error: (err) => this.toast.error(err.error?.message || 'No se pudo cerrar la publicación') });
   }
-  decide(application: AdoptionApplication, estado: 'APPROVED' | 'REJECTED') {
-    const message = estado === 'APPROVED'
-      ? 'Al aprobar, la mascota y el contacto NFC pasarán al nuevo dueño. ¿Continuar?'
-      : '¿Rechazar esta solicitud?';
+  decide(application: AdoptionApplication, etapa: 'APPROVED' | 'DELIVERED' | 'REJECTED') {
+    const message = etapa === 'APPROVED'
+      ? '¿Aprobar la candidatura? La transferencia ocurrirá solo cuando confirmes la entrega.'
+      : etapa === 'DELIVERED'
+        ? '¿Confirmar la entrega? La mascota y el perfil NFC pasarán al nuevo dueño.'
+        : '¿Rechazar esta solicitud?';
     if (!confirm(message)) return;
-    this.api.decideAdoptionApplication(application._id, estado).subscribe({ next: () => { this.toast.success(estado === 'APPROVED' ? 'Adopción aprobada' : 'Solicitud rechazada'); this.load(); this.loadApplications(); }, error: (err) => this.toast.error(err.error?.message || 'No se pudo responder la solicitud') });
+    this.api.decideAdoptionApplication(application._id, etapa).subscribe({ next: () => { this.toast.success(etapa === 'APPROVED' ? 'Candidatura aprobada' : etapa === 'DELIVERED' ? 'Entrega confirmada' : 'Solicitud rechazada'); this.load(); this.loadApplications(); }, error: (err) => this.toast.error(err.error?.message || 'No se pudo responder la solicitud') });
   }
   applicationStatus(status: string) {
-    return ({ PENDING: 'Pendiente', APPROVED: 'Aprobada', REJECTED: 'Rechazada' } as Record<string, string>)[status] || status;
+    return ({ RECEIVED: 'Recibido', IN_REVIEW: 'En revisión', APPROVED: 'Aprobado', DELIVERED: 'Entregado', REJECTED: 'Rechazado' } as Record<string, string>)[status] || status;
+  }
+  stage(application: AdoptionApplication) { return application.etapa || (application.estado === 'PENDING' ? 'RECEIVED' : application.estado); }
+  stepDone(application: AdoptionApplication, value: string) {
+    const current = this.processSteps.findIndex((item) => item.value === this.stage(application));
+    return current >= this.processSteps.findIndex((item) => item.value === value) && current >= 0;
+  }
+  setInterviewDate(id: string, event: Event) { this.interviewDates.update((values) => ({ ...values, [id]: (event.target as HTMLInputElement).value })); }
+  setInterviewMode(id: string, event: Event) { this.interviewModes.update((values) => ({ ...values, [id]: (event.target as HTMLInputElement).value })); }
+  review(application: AdoptionApplication) {
+    const entrevistaFecha = this.interviewDates()[application._id];
+    if (!entrevistaFecha) { this.toast.error('Selecciona fecha y hora de entrevista'); return; }
+    this.api.decideAdoptionApplication(application._id, 'IN_REVIEW', { entrevistaFecha, entrevistaModalidad: this.interviewModes()[application._id] }).subscribe({
+      next: () => { this.toast.success('Entrevista agendada'); this.loadApplications(); },
+      error: (err) => this.toast.error(err.error?.message || 'No se pudo agendar')
+    });
+  }
+  completeFollowUp(application: AdoptionApplication, days: number) {
+    this.api.completeAdoptionFollowUp(application._id, days).subscribe({
+      next: () => { this.toast.success('Seguimiento registrado'); this.loadApplications(); },
+      error: (err) => this.toast.error(err.error?.message || 'No se pudo registrar')
+    });
+  }
+  downloadContract(application: AdoptionApplication) {
+    const doc = new jsPDF();
+    const pet = application.adoption.pet;
+    const adopter = `${application.solicitante.nombre} ${application.solicitante.apellido}`;
+    doc.setFontSize(20);
+    doc.text('Contrato de adopcion responsable', 18, 22);
+    doc.setFontSize(11);
+    const lines = [
+      `Mascota: ${pet.nombre} (${pet.especie} ${pet.raza || ''})`,
+      `Adoptante: ${adopter}`,
+      `Ciudad: ${application.solicitante.ciudad || application.adoption.ciudad}`,
+      `Firma digital: ${application.firmaDigital}`,
+      '',
+      'Compromisos declarados:',
+      `Vivienda: ${application.vivienda}`,
+      `Cuidados: ${application.cuestionario.compromiso}`,
+      `Recursos: ${application.cuestionario.recursos}`,
+      '',
+      'La persona adoptante acepta brindar cuidado responsable, controles',
+      'veterinarios y participar en seguimientos a 7, 30 y 90 dias.',
+      '',
+      `Generado por TagMyPet: ${new Date().toLocaleDateString()}`
+    ];
+    doc.text(doc.splitTextToSize(lines.join('\n'), 175), 18, 38);
+    doc.save(`contrato-adopcion-${pet.nombre.toLowerCase()}.pdf`);
   }
   position(pet: Pet) {
     return `${pet.fotoPosicionX ?? 50}% ${pet.fotoPosicionY ?? 50}%`;

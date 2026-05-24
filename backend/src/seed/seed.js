@@ -8,6 +8,7 @@ import { NfcTag } from '../models/NfcTag.js';
 import { Pet } from '../models/Pet.js';
 import { PetAccess } from '../models/PetAccess.js';
 import { PremiumRequest } from '../models/PremiumRequest.js';
+import { Notification } from '../models/Notification.js';
 import { Reminder } from '../models/Reminder.js';
 import { User } from '../models/User.js';
 import { publicPetUrl } from '../utils/url.js';
@@ -25,6 +26,7 @@ await Promise.all([
   Clinic.deleteMany(),
   PetAccess.deleteMany(),
   PremiumRequest.deleteMany(),
+  Notification.deleteMany(),
   NfcTag.deleteMany()
 ]);
 

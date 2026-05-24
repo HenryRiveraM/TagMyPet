@@ -70,7 +70,6 @@ import { AuthService } from '../../core/services/auth.service';
         </article>
 
         <article class="relative overflow-hidden rounded-lg border border-brand bg-slate-950 p-6 text-white shadow-2xl shadow-slate-300/70">
-          <div class="pointer-events-none absolute -right-16 -top-16 h-44 w-44 rounded-full bg-gold/30 blur-3xl"></div>
           <div class="relative flex items-start justify-between gap-4">
             <div>
               <span class="rounded-md bg-white/10 px-3 py-1 text-xs font-bold uppercase tracking-wide text-stone-200">Recomendado</span>
@@ -165,11 +164,11 @@ export class HomeComponent implements OnInit {
 
   premiumPlan = [
     'Mascotas ilimitadas',
-    'Historial clínico completo',
-    'Recordatorios de vacunas, medicación y controles',
-    'Hasta 5 fotos por mascota',
-    'Gestión de adopciones y reportes perdidos',
-    'Acceso veterinario autorizado por mascota',
+    'Alertas cuando escanean tu collar NFC',
+    'Hasta 12 fotos por mascota',
+    'Carteles PDF para búsquedas urgentes',
+    'Historial clínico exportable en PDF',
+    'Avistamientos y publicaciones prioritarias',
     'Activación anual por QR con comprobante PDF'
   ];
 
@@ -187,7 +186,7 @@ export class HomeComponent implements OnInit {
   faqs = [
     { q: '¿Qué ve alguien al escanear el NFC?', a: 'Solo el perfil público: foto, nombre, datos críticos y formas de contacto. No se expone el historial completo.' },
     { q: '¿Puedo usarlo sin sensor NFC en la computadora?', a: 'Sí. Copias el link público y lo grabas en el collar con NFC Tools desde un celular compatible.' },
-    { q: '¿Qué incluye Premium?', a: 'Por 840 Bs al año, equivalente a 70 Bs al mes, incluye mascotas ilimitadas, historial completo, recordatorios, más fotos, reportes perdidos, adopciones y acceso veterinario autorizado. Pagas por QR y el admin valida tu PDF.' },
+    { q: '¿Qué incluye Premium?', a: 'Por 840 Bs al año, equivalente a 70 Bs al mes, incluye mascotas ilimitadas, alertas de escaneo NFC, álbum ampliado, carteles e historial PDF, avistamientos y prioridad en pérdidas. Pagas por QR y el admin valida tu PDF.' },
     { q: '¿Quién aprueba clínicas?', a: 'El admin revisa y aprueba clínicas para que puedan operar como veterinarias oficiales dentro de TagMyPet.' }
   ];
 }

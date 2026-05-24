@@ -2,11 +2,16 @@ import { LostReport } from '../models/LostReport.js';
 import { Pet } from '../models/Pet.js';
 import { ApiError } from '../utils/apiError.js';
 import { asyncHandler } from '../utils/asyncHandler.js';
+import { notifyUser } from '../utils/notifications.js';
 
 export const publicLostReports = asyncHandler(async (req, res) => {
   const query = { estado: 'LOST' };
   if (req.query.ciudad) query.ciudad = new RegExp(req.query.ciudad, 'i');
-  let reports = await LostReport.find(query).populate('pet', 'nombre especie raza color foto fotos fotoPosicionX fotoPosicionY codigoNFC').sort('-createdAt');
+  let reports = await LostReport.find(query)
+    .select('-avistamientos')
+    .populate('pet', 'nombre especie raza color foto fotos fotoPosicionX fotoPosicionY codigoNFC')
+    .populate('owner', 'plan')
+    .sort('-createdAt');
 
   if (req.query.especie) {
     const especie = String(req.query.especie).toLowerCase();
@@ -31,7 +36,15 @@ export const publicLostReports = asyncHandler(async (req, res) => {
     ].some((value) => String(value || '').toLowerCase().includes(text)));
   }
 
-  res.json(reports);
+  const safeReports = reports
+    .sort((a, b) => Number(b.owner?.plan === 'PREMIUM') - Number(a.owner?.plan === 'PREMIUM'))
+    .map((report) => {
+      const data = report.toObject();
+      data.destacadoPremium = data.owner?.plan === 'PREMIUM';
+      delete data.owner;
+      return data;
+    });
+  res.json(safeReports);
 });
 
 export const createLostReport = asyncHandler(async (req, res) => {
@@ -52,4 +65,25 @@ export const markFound = asyncHandler(async (req, res) => {
   await report.save();
   await Pet.findByIdAndUpdate(report.pet, { estado: 'ACTIVE' });
   res.json(report);
+});
+
+export const createSighting = asyncHandler(async (req, res) => {
+  const report = await LostReport.findById(req.params.id).populate('pet', 'nombre');
+  if (!report || report.estado !== 'LOST') throw new ApiError('Reporte no disponible', 404);
+  report.avistamientos.push({
+    nombre: req.body.nombre,
+    telefono: req.body.telefono,
+    ubicacion: req.body.ubicacion,
+    descripcion: req.body.descripcion
+  });
+  await report.save();
+  await notifyUser(report.owner, 'LOST', `Posible avistamiento de ${report.pet.nombre}`, `Ubicación informada: ${req.body.ubicacion}.`, '/perdidos', { report: report._id });
+  res.status(201).json({ message: 'Avistamiento enviado al dueño de la mascota' });
+});
+
+export const listSightings = asyncHandler(async (req, res) => {
+  const report = await LostReport.findById(req.params.id).select('owner avistamientos');
+  if (!report) throw new ApiError('Reporte no encontrado', 404);
+  if (req.user.rol !== 'ADMIN' && report.owner.toString() !== req.user._id.toString()) throw new ApiError('Sin acceso', 403);
+  res.json(report.avistamientos.sort((a, b) => b.fecha - a.fecha));
 });

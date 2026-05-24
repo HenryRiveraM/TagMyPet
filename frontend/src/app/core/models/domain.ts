@@ -8,12 +8,15 @@ export interface User {
   email: string;
   telefono?: string;
   ciudad?: string;
+  avatar?: string;
   rol: Role;
   estado?: 'ACTIVE' | 'SUSPENDED';
   plan?: 'FREE' | 'PREMIUM';
   premiumStartedAt?: string;
   premiumExpiresAt?: string;
   emailVerified?: boolean;
+  deletionStatus?: 'NONE' | 'PENDING' | 'RESOLVED';
+  deletionReason?: string;
 }
 
 export interface Pet {
@@ -67,9 +70,13 @@ export interface AdoptionApplication {
     recursos: string;
     compromiso: string;
   };
+  vivienda: string;
   firmaDigital: string;
   consentimientoPerfilPublico: boolean;
   estado: 'PENDING' | 'APPROVED' | 'REJECTED';
+  etapa?: 'RECEIVED' | 'IN_REVIEW' | 'APPROVED' | 'DELIVERED' | 'REJECTED';
+  entrevista?: { fecha?: string; modalidad?: string; notas?: string };
+  seguimientos?: Array<{ dias: 7 | 30 | 90; fechaProgramada: string; completado: boolean; notas?: string; completadoAt?: string }>;
   createdAt?: string;
 }
 
@@ -101,6 +108,26 @@ export interface LostReport {
   descripcion?: string;
   contactoPublico: string;
   estado?: 'LOST' | 'FOUND';
+  destacadoPremium?: boolean;
+}
+
+export interface Sighting {
+  _id?: string;
+  nombre: string;
+  telefono: string;
+  ubicacion: string;
+  descripcion?: string;
+  fecha?: string;
+}
+
+export interface Notification {
+  _id: string;
+  type: 'CLINIC' | 'ADOPTION' | 'REMINDER' | 'PREMIUM' | 'NFC_SCAN' | 'ACCOUNT' | 'LOST';
+  title: string;
+  message: string;
+  link?: string;
+  readAt?: string;
+  createdAt: string;
 }
 
 export interface Clinic {

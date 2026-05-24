@@ -3,6 +3,7 @@ import { PremiumRequest } from '../models/PremiumRequest.js';
 import { User } from '../models/User.js';
 import { ApiError } from '../utils/apiError.js';
 import { asyncHandler } from '../utils/asyncHandler.js';
+import { notifyUser } from '../utils/notifications.js';
 
 const PREMIUM_PRICE_YEARLY = 840;
 const PREMIUM_MONTHS = 12;
@@ -95,5 +96,15 @@ export const decidePremiumRequest = asyncHandler(async (req, res) => {
       premiumExpiresAt: request.expiresAt
     });
   }
+  await notifyUser(
+    request.user,
+    'PREMIUM',
+    request.status === 'APPROVED' ? 'Premium activado' : 'Solicitud Premium rechazada',
+    request.status === 'APPROVED'
+      ? `Tu plan Premium está activo hasta ${request.expiresAt.toLocaleDateString()}.`
+      : 'Revisa tu comprobante o contacta al administrador para volver a solicitarlo.',
+    '/premium',
+    { request: request._id }
+  );
   res.json(request);
 });

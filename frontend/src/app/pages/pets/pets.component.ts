@@ -4,6 +4,7 @@ import { RouterLink } from '@angular/router';
 import { ApiService } from '../../core/services/api.service';
 import { Pet } from '../../core/models/domain';
 import { ToastService } from '../../core/services/toast.service';
+import { AuthService } from '../../core/services/auth.service';
 import { PhotoGalleryView, PhotoViewerComponent } from '../../components/photo-viewer/photo-viewer.component';
 
 @Component({
@@ -41,7 +42,7 @@ import { PhotoGalleryView, PhotoViewerComponent } from '../../components/photo-v
           </div>
           <label class="flex items-center gap-2 text-sm"><input type="checkbox" formControlName="esterilizado"> Esterilizado</label>
           <label class="block">
-            <span class="mb-1.5 block text-sm font-semibold text-slate-700">Fotos de la mascota (máximo 5)</span>
+            <span class="mb-1.5 block text-sm font-semibold text-slate-700">Fotos de la mascota (máximo {{ maxPhotos() }})</span>
             <input #fileInput class="field" type="file" accept="image/*" multiple (change)="pickFiles($event)">
           </label>
           @if (previewPhoto(); as preview) {
@@ -164,6 +165,7 @@ export class PetsComponent implements OnInit, OnDestroy {
   private fb = inject(FormBuilder);
   private api = inject(ApiService);
   private toast = inject(ToastService);
+  auth = inject(AuthService);
   @ViewChild('fileInput') fileInput?: ElementRef<HTMLInputElement>;
   pets = signal<Pet[]>([]);
   message = signal('');
@@ -205,9 +207,9 @@ export class PetsComponent implements OnInit, OnDestroy {
   pickFiles(event: Event) {
     const input = event.target as HTMLInputElement;
     const selected = Array.from(input.files || []);
-    if (selected.length > 5) {
+    if (selected.length > this.maxPhotos()) {
       this.isError.set(true);
-      this.message.set('Puedes subir máximo 5 fotos por mascota.');
+      this.message.set(`Puedes subir máximo ${this.maxPhotos()} fotos por mascota.`);
       input.value = '';
       this.files = [];
       this.setCoverPhotos([]);
@@ -334,6 +336,7 @@ export class PetsComponent implements OnInit, OnDestroy {
   }
 
   closeGallery() { this.gallery.set(null); }
+  maxPhotos() { return this.auth.user()?.plan === 'PREMIUM' ? 12 : 5; }
 
   chooseCover(index: number) {
     const photo = this.coverPhotos()[index];

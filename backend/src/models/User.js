@@ -11,6 +11,7 @@ const userSchema = new mongoose.Schema({
   password: { type: String, required: true, minlength: 8, select: false },
   telefono: { type: String, trim: true },
   ciudad: { type: String, trim: true },
+  avatar: { type: String, trim: true },
   rol: { type: String, enum: roles, default: 'OWNER' },
   estado: { type: String, enum: ['ACTIVE', 'SUSPENDED'], default: 'ACTIVE' },
   plan: { type: String, enum: ['FREE', 'PREMIUM'], default: 'FREE' },
@@ -21,6 +22,9 @@ const userSchema = new mongoose.Schema({
   emailVerificationExpires: { type: Date, select: false },
   passwordResetToken: { type: String, select: false },
   passwordResetExpires: { type: Date, select: false },
+  deletionRequestedAt: { type: Date },
+  deletionReason: { type: String, trim: true },
+  deletionStatus: { type: String, enum: ['NONE', 'PENDING', 'RESOLVED'], default: 'NONE' },
   fechaRegistro: { type: Date, default: Date.now }
 }, { timestamps: true });
 

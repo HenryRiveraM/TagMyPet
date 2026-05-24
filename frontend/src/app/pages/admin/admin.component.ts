@@ -65,7 +65,24 @@ import { ToastService } from '../../core/services/toast.service';
         @if (loading()) {
           <div class="mt-5 rounded-lg bg-stone-50 p-6 text-sm text-slate-600">Cargando usuarios...</div>
         } @else {
-        <div class="mt-5 max-h-[420px] overflow-auto rounded-lg border border-stone-200">
+        <div class="mt-5 grid gap-3 md:hidden">
+          @for (user of users(); track user._id || user.id) {
+            <div class="rounded-lg border border-stone-200 bg-stone-50 p-4">
+              <div class="flex items-start justify-between gap-3">
+                <div class="min-w-0">
+                  <p class="font-semibold">{{ user.nombre }} {{ user.apellido }}</p>
+                  <p class="mt-1 break-all text-xs text-slate-500">{{ user.email }}</p>
+                </div>
+                <span class="badge">{{ user.rol }}</span>
+              </div>
+              <div class="mt-4 flex items-center justify-between gap-3">
+                <span class="text-sm">{{ user.estado || 'ACTIVE' }}</span>
+                <button class="btn-outline" (click)="toggle(user)">{{ user.estado === 'SUSPENDED' ? 'Activar' : 'Suspender' }}</button>
+              </div>
+            </div>
+          }
+        </div>
+        <div class="mt-5 hidden max-h-[420px] overflow-auto rounded-lg border border-stone-200 md:block">
           <table class="w-full min-w-[720px] text-left text-sm">
             <thead class="bg-stone-50 text-xs uppercase tracking-wide text-slate-500"><tr><th class="px-4 py-3">Usuario</th><th>Email</th><th>Rol</th><th>Estado</th><th></th></tr></thead>
             <tbody>
@@ -126,6 +143,30 @@ import { ToastService } from '../../core/services/toast.service';
         </div>
       }
     </section>
+    <section class="panel mb-6">
+      <div class="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+        <div>
+          <p class="eyebrow">Privacidad</p>
+          <h2 class="mt-2 text-xl font-bold">Solicitudes de eliminación</h2>
+          <p class="mt-2 text-sm text-slate-600">Revisa cuentas que solicitan retirar sus datos antes de completar la eliminación.</p>
+        </div>
+        <span class="badge">{{ deletionRequests().length }} pendientes</span>
+      </div>
+      @if (!deletionRequests().length) {
+        <div class="mt-5 rounded-lg border border-dashed border-stone-300 bg-stone-50 p-6 text-sm text-slate-600">No hay solicitudes de eliminación pendientes.</div>
+      } @else {
+        <div class="mt-5 grid gap-3 md:grid-cols-2">
+          @for (user of deletionRequests(); track user._id) {
+            <article class="rounded-lg border border-stone-200 bg-stone-50 p-4">
+              <p class="font-bold">{{ user.nombre }} {{ user.apellido }}</p>
+              <p class="mt-1 text-xs text-slate-500">{{ user.email }}</p>
+              <p class="mt-3 text-sm text-slate-700">{{ user.deletionReason }}</p>
+              <button class="btn-outline mt-4" (click)="resolveDeletion(user)">Marcar revisada</button>
+            </article>
+          }
+        </div>
+      }
+    </section>
     <section class="panel">
       <div class="flex items-center justify-between gap-3">
         <div>
@@ -159,6 +200,7 @@ export class AdminComponent implements OnInit {
   users = signal<User[]>([]);
   clinics = signal<Clinic[]>([]);
   premiumRequests = signal<PremiumRequest[]>([]);
+  deletionRequests = signal<User[]>([]);
   loading = signal(true);
   constructor(private api: ApiService, private toast: ToastService) {}
   ngOnInit() { this.load(); }
@@ -182,6 +224,7 @@ export class AdminComponent implements OnInit {
     this.api.adminStats().subscribe((s) => this.stats.set(s));
     this.api.users().subscribe((u) => this.users.set(u));
     this.api.premiumRequests().subscribe({ next: (requests) => this.premiumRequests.set(requests), error: () => this.toast.error('No se pudieron cargar las solicitudes Premium') });
+    this.api.deletionRequests().subscribe({ next: (requests) => this.deletionRequests.set(requests), error: () => undefined });
     this.api.clinics().subscribe({ next: (clinics) => { this.clinics.set(clinics); this.loading.set(false); }, error: () => { this.loading.set(false); this.toast.error('No se pudo cargar el panel admin'); } });
   }
   toggle(user: User) {
@@ -211,6 +254,14 @@ export class AdminComponent implements OnInit {
     this.api.decidePremiumRequest(request._id, status).subscribe({
       next: () => { this.toast.success(status === 'APPROVED' ? 'Premium activado' : 'Solicitud rechazada'); this.load(); },
       error: (err) => this.toast.error(err.error?.message || 'No se pudo procesar la solicitud')
+    });
+  }
+  resolveDeletion(user: User) {
+    const id = user._id || user.id;
+    if (!id) return;
+    this.api.resolveDeletionRequest(id).subscribe({
+      next: () => { this.toast.success('Solicitud revisada'); this.load(); },
+      error: (err) => this.toast.error(err.error?.message || 'No se pudo resolver')
     });
   }
 }

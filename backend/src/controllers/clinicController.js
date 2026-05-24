@@ -4,6 +4,7 @@ import { PetAccess } from '../models/PetAccess.js';
 import { User } from '../models/User.js';
 import { ApiError } from '../utils/apiError.js';
 import { asyncHandler } from '../utils/asyncHandler.js';
+import { notifyUser } from '../utils/notifications.js';
 
 function parseBranches(value = '') {
   return String(value)
@@ -49,6 +50,12 @@ export const createClinic = asyncHandler(async (req, res) => {
 export const updateClinicStatus = asyncHandler(async (req, res) => {
   const clinic = await Clinic.findByIdAndUpdate(req.params.id, { estado: req.body.estado }, { new: true });
   if (!clinic) throw new ApiError('Clínica no encontrada', 404);
+  const message = req.body.estado === 'ACTIVE'
+    ? 'Tu clínica fue aprobada y ya puede solicitar accesos médicos.'
+    : 'La clínica fue suspendida. Contacta al administrador si necesitas revisión.';
+  await Promise.all(clinic.administradores.map((user) =>
+    notifyUser(user, 'CLINIC', `Clínica ${req.body.estado === 'ACTIVE' ? 'aprobada' : 'suspendida'}`, message, '/clinicas', { clinic: clinic._id })
+  ));
   res.json(clinic);
 });
 

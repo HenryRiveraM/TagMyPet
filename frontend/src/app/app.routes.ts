@@ -15,6 +15,8 @@ export const routes: Routes = [
   { path: 'perdidos', loadComponent: () => import('./pages/lost/lost.component').then((m) => m.LostComponent) },
   { path: 'adopciones', loadComponent: () => import('./pages/adoptions/adoptions.component').then((m) => m.AdoptionsComponent) },
   { path: 'dashboard', canActivate: [authGuard], loadComponent: () => import('./pages/dashboard/dashboard.component').then((m) => m.DashboardComponent) },
+  { path: 'perfil', canActivate: [authGuard], loadComponent: () => import('./pages/account/profile.component').then((m) => m.ProfileComponent) },
+  { path: 'notificaciones', canActivate: [authGuard], loadComponent: () => import('./pages/notifications/notifications.component').then((m) => m.NotificationsComponent) },
   { path: 'premium', canActivate: [authGuard, roleGuard], data: { roles: ['OWNER'] }, loadComponent: () => import('./pages/premium/premium.component').then((m) => m.PremiumComponent) },
   { path: 'mascotas', canActivate: [authGuard, roleGuard], data: { roles: ['ADMIN', 'OWNER', 'VETERINARIO'] }, loadComponent: () => import('./pages/pets/pets.component').then((m) => m.PetsComponent) },
   { path: 'historial', canActivate: [authGuard], loadComponent: () => import('./pages/medical/medical.component').then((m) => m.MedicalComponent) },

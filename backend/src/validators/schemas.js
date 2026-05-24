@@ -22,13 +22,29 @@ export const resetPasswordRules = [
   body('password').isLength({ min: 8 }).withMessage('Password mínimo 8 caracteres')
 ];
 
+export const profileRules = [
+  body('nombre').trim().notEmpty().withMessage('Nombre requerido'),
+  body('apellido').trim().notEmpty().withMessage('Apellido requerido'),
+  body('telefono').trim().notEmpty().withMessage('Teléfono requerido'),
+  body('ciudad').trim().notEmpty().withMessage('Ciudad requerida')
+];
+
+export const changePasswordRules = [
+  body('currentPassword').notEmpty().withMessage('Contraseña actual requerida'),
+  body('password').isLength({ min: 8 }).withMessage('La nueva contraseña debe tener al menos 8 caracteres')
+];
+
+export const deletionRequestRules = [
+  body('reason').trim().isLength({ min: 10, max: 500 }).withMessage('Describe brevemente el motivo de eliminación')
+];
+
 export const petRules = [
   body('nombre').trim().notEmpty().withMessage('Nombre de mascota requerido'),
   body('especie').trim().notEmpty().withMessage('Especie requerida'),
   body('edad').optional().isNumeric().withMessage('Edad inválida'),
   body('fotoPosicionX').optional().isFloat({ min: 0, max: 100 }).withMessage('Encuadre horizontal inválido'),
   body('fotoPosicionY').optional().isFloat({ min: 0, max: 100 }).withMessage('Encuadre vertical inválido'),
-  body('fotoPrincipalIndice').optional().isInt({ min: 0, max: 4 }).withMessage('Foto de portada inválida'),
+  body('fotoPrincipalIndice').optional().isInt({ min: 0, max: 11 }).withMessage('Foto de portada inválida'),
   body('fotoPrincipal').optional({ values: 'falsy' }).isURL().withMessage('Foto de portada inválida'),
   body('codigoNFC').optional().customSanitizer(() => undefined)
 ];
@@ -64,12 +80,26 @@ export const applicationRules = [
   body('cuestionario.experiencia').trim().notEmpty().withMessage('Experiencia requerida'),
   body('cuestionario.recursos').trim().notEmpty().withMessage('Recursos requeridos'),
   body('cuestionario.compromiso').trim().notEmpty().withMessage('Compromiso requerido'),
+  body('vivienda').trim().isLength({ min: 15, max: 1000 }).withMessage('Describe tu vivienda y convivencia'),
   body('firmaDigital').trim().notEmpty().withMessage('Firma digital requerida'),
   body('consentimientoPerfilPublico').custom((value) => value === true).withMessage('Debes autorizar el contacto público NFC si la adopción es aprobada')
 ];
 
 export const adoptionDecisionRules = [
-  body('estado').isIn(['APPROVED', 'REJECTED']).withMessage('Estado de solicitud inválido')
+  body('etapa').isIn(['IN_REVIEW', 'APPROVED', 'DELIVERED', 'REJECTED']).withMessage('Etapa de solicitud inválida'),
+  body('entrevistaFecha').optional({ values: 'falsy' }).isISO8601().withMessage('Fecha de entrevista inválida'),
+  body('entrevistaModalidad').optional({ values: 'falsy' }).trim().isLength({ max: 120 }).withMessage('Modalidad inválida')
+];
+
+export const adoptionFollowUpRules = [
+  body('notas').optional({ values: 'falsy' }).trim().isLength({ max: 500 }).withMessage('Notas demasiado largas')
+];
+
+export const sightingRules = [
+  body('nombre').trim().notEmpty().withMessage('Tu nombre es requerido'),
+  body('telefono').trim().notEmpty().withMessage('Teléfono requerido'),
+  body('ubicacion').trim().notEmpty().withMessage('Ubicación requerida'),
+  body('descripcion').optional({ values: 'falsy' }).trim().isLength({ max: 500 }).withMessage('Descripción demasiado larga')
 ];
 
 export const premiumRequestRules = [

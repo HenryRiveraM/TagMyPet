@@ -48,6 +48,24 @@ export class AuthService {
     return this.http.post<{ message: string }>(`${environment.apiUrl}/auth/resend-verification`, {});
   }
 
+  updateProfile(data: FormData) {
+    return this.http.put<{ user: User }>(`${environment.apiUrl}/auth/me`, data).pipe(tap((res) => {
+      localStorage.setItem(this.userKey, JSON.stringify(res.user));
+      this.userState.set(res.user);
+    }));
+  }
+
+  changePassword(payload: { currentPassword: string; password: string }) {
+    return this.http.patch<{ message: string }>(`${environment.apiUrl}/auth/password`, payload);
+  }
+
+  requestDeletion(reason: string) {
+    return this.http.post<{ user: User }>(`${environment.apiUrl}/auth/deletion-request`, { reason }).pipe(tap((res) => {
+      localStorage.setItem(this.userKey, JSON.stringify(res.user));
+      this.userState.set(res.user);
+    }));
+  }
+
   refreshUser() {
     return this.http.get<{ user: User }>(`${environment.apiUrl}/auth/me`).pipe(tap((res) => {
       localStorage.setItem(this.userKey, JSON.stringify(res.user));

@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { environment } from '../../../environments/environment';
-import { Adoption, AdoptionApplication, Clinic, LostReport, NfcTag, Pet, PetAccessRequest, PremiumRequest, Reminder, User } from '../models/domain';
+import { Adoption, AdoptionApplication, Clinic, LostReport, NfcTag, Notification, Pet, PetAccessRequest, PremiumRequest, Reminder, Sighting, User } from '../models/domain';
 
 @Injectable({ providedIn: 'root' })
 export class ApiService {
@@ -33,6 +33,8 @@ export class ApiService {
   }
   createLost(data: object) { return this.http.post(`${this.api}/lost`, data); }
   markFound(id: string) { return this.http.patch(`${this.api}/lost/${id}/found`, {}); }
+  createSighting(id: string, data: object) { return this.http.post<{ message: string }>(`${this.api}/lost/${id}/sightings`, data); }
+  sightings(id: string) { return this.http.get<Sighting[]>(`${this.api}/lost/${id}/sightings`); }
   adoptions(filters: { especie?: string; raza?: string; edad?: string | number } = {}) {
     const params = this.cleanParams(filters);
     return this.http.get<Adoption[]>(`${this.api}/adoptions`, { params });
@@ -40,11 +42,14 @@ export class ApiService {
   createAdoption(data: object) { return this.http.post(`${this.api}/adoptions`, data); }
   applyAdoption(id: string, data: object) { return this.http.post(`${this.api}/adoptions/${id}/apply`, data); }
   adoptionApplications() { return this.http.get<AdoptionApplication[]>(`${this.api}/adoptions/applications`); }
-  decideAdoptionApplication(id: string, estado: 'APPROVED' | 'REJECTED') { return this.http.patch<AdoptionApplication>(`${this.api}/adoptions/applications/${id}/status`, { estado }); }
+  decideAdoptionApplication(id: string, etapa: 'IN_REVIEW' | 'APPROVED' | 'DELIVERED' | 'REJECTED', interview: object = {}) { return this.http.patch<AdoptionApplication>(`${this.api}/adoptions/applications/${id}/status`, { etapa, ...interview }); }
+  completeAdoptionFollowUp(id: string, days: number, notas = '') { return this.http.patch<AdoptionApplication>(`${this.api}/adoptions/applications/${id}/follow-ups/${days}`, { notas }); }
   closeAdoption(id: string) { return this.http.patch<Adoption>(`${this.api}/adoptions/${id}/close`, {}); }
   adminStats() { return this.http.get<Record<string, number>>(`${this.api}/admin/stats`); }
   users() { return this.http.get<User[]>(`${this.api}/admin/users`); }
   updateUserStatus(id: string, estado: string) { return this.http.patch<User>(`${this.api}/admin/users/${id}/status`, { estado }); }
+  deletionRequests() { return this.http.get<User[]>(`${this.api}/admin/deletion-requests`); }
+  resolveDeletionRequest(id: string) { return this.http.patch<User>(`${this.api}/admin/deletion-requests/${id}/resolve`, {}); }
   clinics() { return this.http.get<Clinic[]>(`${this.api}/clinics`); }
   createClinic(data: object) { return this.http.post<Clinic>(`${this.api}/clinics`, data); }
   updateClinicStatus(id: string, estado: 'PENDING' | 'ACTIVE' | 'SUSPENDED') { return this.http.patch<Clinic>(`${this.api}/clinics/${id}/status`, { estado }); }
@@ -64,4 +69,8 @@ export class ApiService {
   premiumRequests() { return this.http.get<PremiumRequest[]>(`${this.api}/premium`); }
   premiumReceiptLink(id: string) { return this.http.get<{ url: string; expiresInSeconds: number }>(`${this.api}/premium/${id}/receipt`); }
   decidePremiumRequest(id: string, status: 'APPROVED' | 'REJECTED') { return this.http.patch<PremiumRequest>(`${this.api}/premium/${id}/status`, { status }); }
+  notifications() { return this.http.get<Notification[]>(`${this.api}/notifications`); }
+  unreadNotificationCount() { return this.http.get<{ count: number }>(`${this.api}/notifications/unread-count`); }
+  readNotification(id: string) { return this.http.patch<Notification>(`${this.api}/notifications/${id}/read`, {}); }
+  readAllNotifications() { return this.http.patch(`${this.api}/notifications/read-all`, {}); }
 }

@@ -5,6 +5,8 @@ import { AuthService } from '../../core/services/auth.service';
 import { LostReport, Pet } from '../../core/models/domain';
 import { ToastService } from '../../core/services/toast.service';
 import { PhotoGalleryView, PhotoViewerComponent } from '../../components/photo-viewer/photo-viewer.component';
+import { jsPDF } from 'jspdf';
+import { Sighting } from '../../core/models/domain';
 
 @Component({
   standalone: true,
@@ -66,6 +68,7 @@ import { PhotoGalleryView, PhotoViewerComponent } from '../../components/photo-v
         }
         @for (report of reports(); track report._id) {
           <article class="panel">
+            @if (report.destacadoPremium) { <span class="badge mb-3 inline-flex">Búsqueda prioritaria</span> }
             <button type="button" class="group relative mb-4 block w-full overflow-hidden rounded-md bg-stone-100 text-left" (click)="openGallery(report.pet, coverIndex(report.pet))" [attr.aria-label]="'Ampliar fotos de ' + report.pet.nombre">
               <span class="flex aspect-[4/3] w-full items-center justify-center">
                 <img class="h-full w-full object-cover transition duration-500 group-hover:scale-[1.04]" [style.object-position]="coverPosition(report.pet)" [src]="mainPhoto(report.pet)" [alt]="report.pet.nombre">
@@ -91,8 +94,31 @@ import { PhotoGalleryView, PhotoViewerComponent } from '../../components/photo-v
               <button class="btn-outline" (click)="share(report)">Compartir</button>
               @if (canMarkFound(report)) {
                 <button class="btn" (click)="markFound(report)">Marcar encontrada</button>
+                @if (auth.user()?.plan === 'PREMIUM') { <button class="btn-outline" (click)="downloadPoster(report)">Descargar cartel PDF</button> }
               }
             </div>
+            @if (!canMarkFound(report)) {
+              <details class="mt-4 rounded-lg border border-stone-200 bg-stone-50 p-3">
+                <summary class="cursor-pointer text-sm font-bold">Reportar avistamiento</summary>
+                <form class="mt-3 grid gap-2" [formGroup]="sightingForm" (ngSubmit)="sendSighting(report)">
+                  <input class="field" formControlName="nombre" placeholder="Tu nombre *">
+                  <input class="field" formControlName="telefono" placeholder="Teléfono *">
+                  <input class="field" formControlName="ubicacion" placeholder="Dónde la viste *">
+                  <textarea class="field" formControlName="descripcion" placeholder="Detalles útiles"></textarea>
+                  <button class="btn" [disabled]="sightingForm.invalid">Enviar avistamiento</button>
+                </form>
+              </details>
+            } @else if (reportSightings(report._id).length) {
+              <details class="mt-4 rounded-lg border border-stone-200 bg-stone-50 p-3">
+                <summary class="cursor-pointer text-sm font-bold">{{ reportSightings(report._id).length }} avistamientos recibidos</summary>
+                @for (item of reportSightings(report._id); track item._id) {
+                  <div class="mt-3 border-t border-stone-200 pt-3 text-sm">
+                    <p class="font-bold">{{ item.ubicacion }}</p>
+                    <p class="text-slate-600">{{ item.descripcion || 'Sin detalle adicional' }} · {{ item.telefono }}</p>
+                  </div>
+                }
+              </details>
+            }
           </article>
         }
       </section>
@@ -113,6 +139,7 @@ export class LostComponent implements OnInit {
   loading = signal(true);
   ownedPetIds = signal<Set<string>>(new Set());
   gallery = signal<PhotoGalleryView | null>(null);
+  sightings = signal<Record<string, Sighting[]>>({});
   cities = ['La Paz', 'Cochabamba', 'Santa Cruz', 'Oruro', 'Potosí', 'Chuquisaca', 'Tarija', 'Beni', 'Pando'];
   filter = this.fb.nonNullable.group({ texto: [''], ciudad: [''], especie: [''], raza: [''] });
   form = this.fb.nonNullable.group({
@@ -122,12 +149,22 @@ export class LostComponent implements OnInit {
     contactoPublico: ['', Validators.required],
     descripcion: ['']
   });
+  sightingForm = this.fb.nonNullable.group({
+    nombre: ['', Validators.required],
+    telefono: ['', Validators.required],
+    ubicacion: ['', Validators.required],
+    descripcion: ['']
+  });
 
   ngOnInit() { this.load(); this.api.pets().subscribe({ next: (pets) => { this.pets.set(pets); this.ownedPetIds.set(new Set(pets.map((pet) => pet._id))); if (pets[0]) this.form.patchValue({ pet: pets[0]._id }); }, error: () => undefined }); }
   load() {
     this.loading.set(true);
     this.api.lostReports(this.filter.getRawValue()).subscribe({
-      next: (reports) => { this.reports.set(reports); this.loading.set(false); },
+      next: (reports) => {
+        this.reports.set(reports);
+        this.loading.set(false);
+        reports.filter((report) => this.canMarkFound(report)).forEach((report) => this.loadSightings(report));
+      },
       error: () => { this.loading.set(false); this.toast.error('No se pudieron cargar los reportes'); }
     });
   }
@@ -146,6 +183,33 @@ export class LostComponent implements OnInit {
       next: () => { this.toast.success(`${report.pet.nombre} fue marcada como encontrada`); this.load(); },
       error: (err) => this.toast.error(err.error?.message || 'No se pudo marcar como encontrada')
     });
+  }
+  sendSighting(report: LostReport) {
+    this.api.createSighting(report._id, this.sightingForm.getRawValue()).subscribe({
+      next: ({ message }) => { this.toast.success(message); this.sightingForm.reset(); },
+      error: (err) => this.toast.error(err.error?.message || 'No se pudo enviar el avistamiento')
+    });
+  }
+  loadSightings(report: LostReport) {
+    this.api.sightings(report._id).subscribe({ next: (items) => this.sightings.update((value) => ({ ...value, [report._id]: items })), error: () => undefined });
+  }
+  reportSightings(reportId: string) {
+    return this.sightings()[reportId] || [];
+  }
+  downloadPoster(report: LostReport) {
+    const doc = new jsPDF();
+    doc.setFontSize(30);
+    doc.text('SE BUSCA', 105, 25, { align: 'center' });
+    doc.setFontSize(22);
+    doc.text(report.pet.nombre, 105, 39, { align: 'center' });
+    doc.setFontSize(12);
+    doc.text(`Zona: ${report.ciudad} - ${report.zona || 'Sin zona especificada'}`, 20, 58);
+    doc.text(doc.splitTextToSize(report.descripcion || 'Ayúdanos a encontrar a esta mascota.', 170), 20, 68);
+    doc.setFontSize(19);
+    doc.text(`Contacto: ${report.contactoPublico}`, 20, 98);
+    doc.setFontSize(10);
+    doc.text('Comparte este cartel. Generado por TagMyPet Premium.', 20, 112);
+    doc.save(`cartel-perdida-${report.pet.nombre.toLowerCase()}.pdf`);
   }
   photos(pet: Pet) {
     const images = pet.fotos?.length ? pet.fotos : pet.foto ? [pet.foto] : [];

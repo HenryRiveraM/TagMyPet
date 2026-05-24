@@ -167,7 +167,7 @@ export class PremiumComponent implements OnInit {
     paymentReference: ['', [Validators.required, Validators.minLength(4), Validators.maxLength(120)]],
     notes: ['', Validators.maxLength(400)]
   });
-  benefits = ['Mascotas ilimitadas', 'Historial clínico completo', 'Recordatorios avanzados', 'Hasta 5 fotos por mascota', 'Adopciones y perdidos', 'Acceso veterinario autorizado'];
+  benefits = ['Mascotas ilimitadas', 'Alertas cuando escanean tu NFC', 'Hasta 12 fotos por mascota', 'Carteles PDF de pérdida', 'Exportación de historial clínico', 'Prioridad y reportes de avistamiento'];
   steps = [
     { number: '1', title: 'Paga con QR', text: 'Escanea el QR BCP y coloca el monto anual de 840 Bs.' },
     { number: '2', title: 'Descarga el comprobante', text: 'Guarda el comprobante bancario en formato PDF.' },

@@ -4,6 +4,8 @@ import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ApiService } from '../../core/services/api.service';
 import { Pet } from '../../core/models/domain';
 import { ToastService } from '../../core/services/toast.service';
+import { AuthService } from '../../core/services/auth.service';
+import { jsPDF } from 'jspdf';
 
 @Component({
   standalone: true,
@@ -45,10 +47,15 @@ import { ToastService } from '../../core/services/toast.service';
           <article class="panel min-h-40 animate-pulse"><div class="h-5 w-32 rounded bg-stone-100"></div><div class="mt-5 h-4 w-2/3 rounded bg-stone-100"></div></article>
         }
         <div class="panel">
+          <div class="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
           <div class="flex flex-wrap gap-2">
             @for (type of types; track type.value) {
               <button type="button" class="btn-outline" [class.bg-brand]="activeType() === type.value" [class.text-white]="activeType() === type.value" (click)="activeType.set(type.value)">{{ type.label }} · {{ countByType(type.value) }}</button>
             }
+          </div>
+          @if (auth.user()?.plan === 'PREMIUM' && records().length) {
+            <button type="button" class="btn-outline" (click)="exportHistory()">Exportar PDF</button>
+          }
           </div>
         </div>
         @if (!filteredRecords().length) {
@@ -79,6 +86,7 @@ export class MedicalComponent implements OnInit {
   private fb = inject(FormBuilder);
   private api = inject(ApiService);
   private toast = inject(ToastService);
+  auth = inject(AuthService);
   pets = signal<Pet[]>([]);
   records = signal<any[]>([]);
   loading = signal(true);
@@ -149,4 +157,20 @@ export class MedicalComponent implements OnInit {
   filteredRecords() { return this.records().filter((record) => record.tipo === this.activeType()); }
   countByType(type: string) { return this.records().filter((record) => record.tipo === type).length; }
   activeTypeLabel() { return this.types.find((type) => type.value === this.activeType())?.label || 'registros'; }
+  exportHistory() {
+    const pet = this.pets().find((item) => item._id === this.form.controls.pet.value);
+    const doc = new jsPDF();
+    doc.setFontSize(20);
+    doc.text(`Historial clinico - ${pet?.nombre || 'Mascota'}`, 18, 22);
+    doc.setFontSize(10);
+    let y = 38;
+    for (const record of this.records()) {
+      const text = `${record.tipo} | ${record.titulo} | ${new Date(record.fecha).toLocaleDateString()}\n${record.descripcion || 'Sin descripcion'}`;
+      doc.text(doc.splitTextToSize(text, 175), 18, y);
+      y += 20;
+      if (y > 270) { doc.addPage(); y = 20; }
+    }
+    doc.save(`historial-${(pet?.nombre || 'mascota').toLowerCase()}.pdf`);
+    this.toast.success('Historial PDF generado');
+  }
 }

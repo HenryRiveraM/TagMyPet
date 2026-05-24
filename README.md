@@ -129,6 +129,9 @@ Auth:
 - `POST /api/auth/register`
 - `POST /api/auth/login`
 - `GET /api/auth/me`
+- `PUT /api/auth/me` (`multipart/form-data`, foto de perfil opcional)
+- `PATCH /api/auth/password`
+- `POST /api/auth/deletion-request`
 - `POST /api/auth/forgot-password`
 - `POST /api/auth/reset-password/:token`
 - `GET /api/auth/verify-email/:token`
@@ -161,15 +164,25 @@ Perdidos:
 - `GET /api/lost?ciudad=La%20Paz`
 - `POST /api/lost`
 - `PATCH /api/lost/:id/found`
+- `POST /api/lost/:id/sightings`
+- `GET /api/lost/:id/sightings` (dueño del reporte o `ADMIN`)
 
 Adopciones:
 
 - `GET /api/adoptions`
 - `POST /api/adoptions`
-- `POST /api/adoptions/:id/apply`
+- `POST /api/adoptions/:id/apply` (incluye vivienda y firma digital)
 - `GET /api/adoptions/applications`
-- `PATCH /api/adoptions/applications/:id/status`
+- `PATCH /api/adoptions/applications/:id/status` (`IN_REVIEW`, `APPROVED`, `DELIVERED`, `REJECTED`; puede agendar entrevista)
+- `PATCH /api/adoptions/applications/:id/follow-ups/:days` (`7`, `30`, `90`)
 - `PATCH /api/adoptions/:id/close`
+
+Notificaciones:
+
+- `GET /api/notifications`
+- `GET /api/notifications/unread-count`
+- `PATCH /api/notifications/:id/read`
+- `PATCH /api/notifications/read-all`
 
 Premium anual por QR:
 
@@ -184,6 +197,8 @@ Admin:
 - `GET /api/admin/stats`
 - `GET /api/admin/users`
 - `PATCH /api/admin/users/:id/status`
+- `GET /api/admin/deletion-requests`
+- `PATCH /api/admin/deletion-requests/:id/resolve`
 
 Clínicas veterinarias:
 
@@ -223,6 +238,8 @@ Inventario NFC:
 - Un veterinario no puede consultar el detalle de una mascota sin autorización médica aprobada.
 - El registro público no permite autoseleccionar el rol administrador.
 - Inventario NFC con estados: disponible, asignado, vendido, defectuoso y desactivado.
+- Alertas de escaneo NFC generadas solo para dueños Premium, sin revelar identidad de quien escanea.
+- Avistamientos de mascotas perdidas visibles solo para el dueño del reporte o administración.
 
 ## Cloudinary
 
@@ -330,6 +347,7 @@ Frontend en Netlify:
 - Si vence la vigencia, el backend devuelve automáticamente la cuenta al plan `FREE` en su siguiente sesión o uso autenticado.
 - El QR actual es de monto abierto: el usuario debe introducir `840 Bs` y reemplazarse antes de su vencimiento visible, `23/05/2027`.
 - TagMyPet no procesa tarjetas ni débitos automáticos; el pago y su verificación son manuales.
+- Premium incluye mascotas ilimitadas, hasta 12 fotos por mascota, alertas de escaneo NFC, carteles PDF para mascotas perdidas, exportación PDF del historial clínico y prioridad con reportes de avistamiento.
 
 Contacto oficial para activación y soporte:
 
@@ -339,11 +357,11 @@ Contacto oficial para activación y soporte:
 ## Privacidad Y Consentimiento
 
 - Al crear una mascota, el dueño debe autorizar que su foto principal, datos críticos y teléfono sean visibles en el perfil público NFC.
-- Al aprobar una adopción, la mascota se transfiere al solicitante aprobado y este debe haber autorizado previamente que su teléfono sea el nuevo contacto público NFC.
+- Al confirmar la entrega de una adopción aprobada, la mascota se transfiere al solicitante y este debe haber autorizado previamente que su teléfono sea el nuevo contacto público NFC.
 - El historial clínico completo permanece privado; el veterinario necesita autorización aprobada para acceder.
 - Los comprobantes bancarios Premium se conservan de forma privada y solo administración obtiene acceso temporal para verificación.
-- La portada de la mascota permite elegir cualquiera de sus hasta 5 fotos y cambiarla más adelante, además de ajustar el encuadre horizontal y vertical para mostrar correctamente su cara; la galería siempre conserva las fotos completas.
-- Para solicitar corrección o eliminación de cuenta, mascota o fotos, el usuario puede contactar al desarrollador oficial mediante el teléfono o email indicados.
+- La portada de la mascota permite elegir cualquiera de sus fotos y cambiarla más adelante, además de ajustar el encuadre horizontal y vertical para mostrar correctamente su cara; la galería siempre conserva las fotos completas. El límite es 5 fotos en Free y 12 en Premium.
+- El usuario puede editar su perfil y solicitar eliminación de cuenta desde `Mi perfil`; administración recibe y resuelve la solicitud.
 
 ## Pruebas Manuales
 
@@ -352,16 +370,18 @@ Contacto oficial para activación y soporte:
 3. Login con `admin@tagmypet.com`.
 4. Ver dashboard y panel admin.
 5. Login con `owner@tagmypet.com`.
-6. Crear mascota con hasta 5 fotos, aceptar consentimiento NFC, ajustar su foto de portada, copiar el código/link y abrir su perfil público.
+6. Crear mascota con hasta 5 fotos en Free o 12 en Premium, aceptar consentimiento NFC, ajustar su foto de portada, copiar el código/link y abrir su perfil público.
 7. Crear historial y recordatorios.
-8. Publicar reporte perdido.
-9. Desde otra cuenta OWNER, solicitar adopción con cuestionario y firma digital; desde el dueño original aprobar o rechazar y comprobar el estado.
+8. Publicar reporte perdido; desde otro usuario enviar un avistamiento y, como dueño Premium, descargar el cartel PDF.
+9. Desde otra cuenta OWNER, solicitar adopción con cuestionario, vivienda y firma; desde el dueño original agendar entrevista, aprobar, descargar contrato, registrar entrega y completar seguimientos a 7, 30 y 90 días.
 10. Login con `vet@tagmypet.com`.
 11. Crear una clínica desde veterinario y aprobarla desde admin, o revisar la clínica oficial del seed.
 12. Solicitar acceso médico con el código NFC de una mascota y aprobarlo desde dueño/admin.
 13. Login con `admin@tagmypet.com` y abrir `Tags NFC` para crear lote y asignar tags.
 14. Desde una cuenta FREE abrir `Premium`, escanear el QR, adjuntar un PDF de comprobante y enviar la solicitud.
 15. Desde admin abrir el PDF protegido, aprobarla y verificar que el usuario muestre vigencia Premium por 12 meses.
+16. Revisar la campana de notificaciones tras aprobar clínica/Premium, enviar adopción, disparar recordatorio o abrir un NFC Premium.
+17. Abrir `Mi perfil`, actualizar datos/foto, cambiar contraseña y probar la solicitud administrativa de eliminación.
 
 ## Guion de Demo Recomendado
 
@@ -448,6 +468,8 @@ Checklist de QA en celular real:
 8. Adopciones: revisar publicaciones y formulario.
 9. Tags NFC: asignar, copiar URL, abrir perfil y verificar flujo NFC.
 10. Perfil NFC público: abrir desde celular sin login y confirmar que la foto se ve completa.
+11. Navegación autenticada: abrir menú, campana y `Mi perfil` sin desbordamiento horizontal.
+12. Dashboard: revisar tarjetas, acciones rápidas y listas NFC/clínicas en pantalla angosta.
 
 Resultado esperado:
 

@@ -9,6 +9,8 @@ import { LostReport } from '../models/LostReport.js';
 import { Adoption, AdoptionApplication } from '../models/Adoption.js';
 import { ApiError } from '../utils/apiError.js';
 import { asyncHandler } from '../utils/asyncHandler.js';
+import { Notification } from '../models/Notification.js';
+import { notifyUser } from '../utils/notifications.js';
 
 function uploadImage(buffer) {
   if (!process.env.CLOUDINARY_CLOUD_NAME || process.env.CLOUDINARY_CLOUD_NAME === 'demo') {
@@ -23,8 +25,9 @@ function uploadImage(buffer) {
   });
 }
 
-async function uploadImages(files = []) {
-  const selected = files.slice(0, 5);
+async function uploadImages(files = [], limit = 5) {
+  if (files.length > limit) throw new ApiError(`Tu plan permite un máximo de ${limit} fotos por mascota`, 402);
+  const selected = files.slice(0, limit);
   return Promise.all(selected.map((file) => uploadImage(file.buffer)));
 }
 
@@ -62,7 +65,7 @@ export const createPet = asyncHandler(async (req, res) => {
   data.codigoNFC = crypto.randomUUID();
   data.consentimientoPerfilPublico = true;
   data.fechaConsentimiento = new Date();
-  const photos = await uploadImages(req.files || []);
+  const photos = await uploadImages(req.files || [], req.user.plan === 'PREMIUM' ? 12 : 5);
   if (photos.length) {
     data.fotos = photos;
     data.foto = selectedUploadedPhoto(photos, data.fotoPrincipalIndice);
@@ -112,7 +115,7 @@ export const updatePet = asyncHandler(async (req, res) => {
   delete data.consentimientoPerfilPublico;
   delete data.fechaConsentimiento;
   Object.assign(pet, data);
-  const photos = await uploadImages(req.files || []);
+  const photos = await uploadImages(req.files || [], req.user.plan === 'PREMIUM' ? 12 : 5);
   if (photos.length) {
     pet.fotos = photos;
     pet.foto = selectedUploadedPhoto(photos, selectedNewPhotoIndex);
@@ -141,9 +144,20 @@ export const deletePet = asyncHandler(async (req, res) => {
 
 export const publicNfcProfile = asyncHandler(async (req, res) => {
   const pet = await Pet.findOne({ codigoNFC: req.params.nfcCode })
-    .populate('propietario', 'nombre telefono ciudad');
+    .populate('propietario', 'nombre telefono ciudad plan');
   if (!pet || pet.estado === 'INACTIVE' || !pet.consentimientoPerfilPublico) {
     throw new ApiError('Perfil no encontrado', 404);
+  }
+  if (pet.propietario.plan === 'PREMIUM') {
+    const recent = await Notification.exists({
+      user: pet.propietario._id,
+      type: 'NFC_SCAN',
+      'metadata.pet': pet._id,
+      createdAt: { $gte: new Date(Date.now() - 30 * 60 * 1000) }
+    });
+    if (!recent) {
+      await notifyUser(pet.propietario._id, 'NFC_SCAN', `Escaneo NFC: ${pet.nombre}`, 'Alguien abrió el perfil público de tu mascota.', '/mascotas', { pet: pet._id });
+    }
   }
 
   res.json({

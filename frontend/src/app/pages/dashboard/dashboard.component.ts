@@ -10,7 +10,7 @@ import { ToastService } from '../../core/services/toast.service';
   standalone: true,
   imports: [RouterLink, DatePipe],
   template: `
-    <section class="mb-6 overflow-hidden rounded-lg border border-white/80 bg-slate-950 p-6 text-white shadow-xl shadow-slate-300/50 md:p-8">
+    <section class="mb-5 overflow-hidden rounded-lg border border-white/80 bg-slate-950 p-5 text-white shadow-xl shadow-slate-300/50 sm:p-6 md:mb-6 md:p-8">
       <p class="eyebrow text-stone-200">Panel de control</p>
       <div class="mt-3 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
         <div>
@@ -21,7 +21,7 @@ import { ToastService } from '../../core/services/toast.service';
           </div>
         </div>
         @if (auth.user()?.rol === 'ADMIN') {
-          <button class="btn bg-white text-slate-950 hover:bg-stone-100" (click)="sendReminderNotifications()">Enviar recordatorios próximos</button>
+          <button class="btn w-full bg-white text-slate-950 hover:bg-stone-100 sm:w-auto" (click)="sendReminderNotifications()">Enviar recordatorios próximos</button>
         }
       </div>
       @if (!auth.user()?.emailVerified) {
@@ -33,13 +33,13 @@ import { ToastService } from '../../core/services/toast.service';
       }
     </section>
     @if (auth.user()?.rol === 'OWNER') {
-      <section class="mb-6 rounded-lg border border-stone-200 bg-white p-5 shadow-sm md:p-6">
+      <section class="mb-5 rounded-lg border border-stone-200 bg-white p-4 shadow-sm sm:p-5 md:mb-6 md:p-6">
         <div class="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
           <div>
             <p class="eyebrow">Plan de cuenta</p>
             @if (auth.user()?.plan === 'PREMIUM') {
               <h2 class="mt-2 text-2xl font-bold">Premium activo</h2>
-              <p class="mt-2 text-sm text-slate-600">Tu cuenta tiene mascotas ilimitadas, historial completo y herramientas avanzadas. @if (auth.user()?.premiumExpiresAt) { Vigente hasta el {{ auth.user()?.premiumExpiresAt | date:'longDate' }}. }</p>
+              <p class="mt-2 text-sm text-slate-600">Incluye alertas NFC, álbum de 12 fotos, carteles e historial PDF y prioridad en búsquedas. @if (auth.user()?.premiumExpiresAt) { Vigente hasta el {{ auth.user()?.premiumExpiresAt | date:'longDate' }}. }</p>
             } @else {
               <h2 class="mt-2 text-2xl font-bold">Activar Premium · 840 Bs/año</h2>
               <p class="mt-2 max-w-xl text-sm leading-6 text-slate-600">Paga mediante QR boliviano, adjunta tu comprobante PDF y recibe 12 meses desde su aprobación.</p>
@@ -49,10 +49,10 @@ import { ToastService } from '../../core/services/toast.service';
             <span class="rounded-md px-3 py-2 text-sm font-bold" [class.bg-amber-100]="request.status === 'PENDING'" [class.text-amber-800]="request.status === 'PENDING'" [class.bg-emerald-100]="request.status === 'APPROVED'" [class.text-emerald-800]="request.status === 'APPROVED'" [class.bg-red-100]="request.status === 'REJECTED'" [class.text-red-800]="request.status === 'REJECTED'">Solicitud: {{ premiumStatus(request.status) }}</span>
           }
         </div>
-        <a routerLink="/premium" class="btn mt-5">{{ auth.user()?.plan === 'PREMIUM' ? 'Ver mi vigencia Premium' : hasPendingPremium() ? 'Ver solicitud y pago' : 'Pagar con QR y activar' }}</a>
+        <a routerLink="/premium" class="btn mt-5 w-full sm:w-auto">{{ auth.user()?.plan === 'PREMIUM' ? 'Ver mi vigencia Premium' : hasPendingPremium() ? 'Ver solicitud y pago' : 'Pagar con QR y activar' }}</a>
       </section>
     }
-    <section class="grid gap-4 md:grid-cols-3">
+    <section class="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
       @if (loading()) {
         @for (item of [1,2,3]; track item) {
           <article class="panel min-h-40 animate-pulse"><div class="h-5 w-24 rounded bg-stone-100"></div><div class="mt-5 h-5 w-1/2 rounded bg-stone-100"></div><div class="mt-3 h-4 w-2/3 rounded bg-stone-100"></div></article>
@@ -194,6 +194,7 @@ export class DashboardComponent implements OnInit {
       { tag: 'Lotes', title: 'Tags NFC', text: 'Inventario, lotes y asignación física.', href: '/tags-nfc', roles: ['ADMIN', 'OWNER'] },
       { tag: 'Hogar', title: 'Adopciones', text: 'Publica o solicita adopciones.', href: '/adopciones', roles: ['ADMIN', 'OWNER'] },
       { tag: 'Mapa', title: 'Perdidos', text: 'Reportes públicos y encontrados.', href: '/perdidos', roles: ['ADMIN', 'OWNER', 'VETERINARIO'] },
+      { tag: 'Avisos', title: 'Notificaciones', text: 'Aprobaciones, escaneos y alertas.', href: '/notificaciones', roles: ['ADMIN', 'OWNER', 'VETERINARIO'] },
       { tag: 'Admin', title: 'Admin', text: 'Usuarios, moderación y estadísticas.', href: '/admin', roles: ['ADMIN'] }
     ];
     return cards.filter((card) => role && card.roles.includes(role));
@@ -206,6 +207,7 @@ export class DashboardComponent implements OnInit {
       { title: 'Reportar mascota perdida', text: 'Publica contacto y zona de búsqueda.', href: '/perdidos', roles: ['ADMIN', 'OWNER'] },
       { title: 'Copiar link NFC', text: 'Pega el enlace en NFC Tools.', href: '/tags-nfc', roles: ['ADMIN', 'OWNER'] },
       { title: 'Historial médico', text: 'Vacunas, tratamientos y controles.', href: '/historial', roles: ['ADMIN', 'OWNER', 'VETERINARIO'] },
+      { title: 'Revisar notificaciones', text: 'Actualizaciones y alertas importantes.', href: '/notificaciones', roles: ['ADMIN', 'OWNER', 'VETERINARIO'] },
       { title: 'Aprobar clínicas', text: 'Revisa solicitudes pendientes.', href: '/admin', roles: ['ADMIN'] }
     ].filter((action) => role && action.roles.includes(role));
   }

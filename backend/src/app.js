@@ -14,6 +14,7 @@ import { petRoutes } from './routes/petRoutes.js';
 import { reminderRoutes } from './routes/reminderRoutes.js';
 import { tagRoutes } from './routes/tagRoutes.js';
 import { premiumRoutes } from './routes/premiumRoutes.js';
+import { notificationRoutes } from './routes/notificationRoutes.js';
 import { errorHandler, notFound } from './middleware/error.js';
 import { emailConfigured } from './utils/email.js';
 
@@ -45,6 +46,7 @@ app.use('/api/lost', lostRoutes);
 app.use('/api/adoptions', adoptionRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/premium', premiumRoutes);
+app.use('/api/notifications', notificationRoutes);
 
 app.use(notFound);
 app.use(errorHandler);

@@ -1,5 +1,6 @@
 import { Reminder } from '../models/Reminder.js';
 import { sendEmail } from '../utils/email.js';
+import { notifyUser } from '../utils/notifications.js';
 
 export async function sendDueReminderNotifications({ daysAhead = 2 } = {}) {
   const now = new Date();
@@ -18,6 +19,14 @@ export async function sendDueReminderNotifications({ daysAhead = 2 } = {}) {
       text: `${reminder.owner.nombre}, recuerda ${reminder.titulo} para ${reminder.pet.nombre} el ${reminder.fecha.toLocaleDateString()}.`,
       html: `<p>Hola ${reminder.owner.nombre},</p><p>Recuerda <strong>${reminder.titulo}</strong> para <strong>${reminder.pet.nombre}</strong>.</p><p>Fecha: ${reminder.fecha.toLocaleDateString()}</p>`
     });
+    await notifyUser(
+      reminder.owner._id,
+      'REMINDER',
+      `Recordatorio próximo: ${reminder.titulo}`,
+      `${reminder.pet.nombre} tiene una cita o tarea programada para ${reminder.fecha.toLocaleDateString()}.`,
+      '/recordatorios',
+      { reminder: reminder._id }
+    );
     reminder.notificationSentAt = new Date();
     await reminder.save();
   }
